@@ -1,20 +1,36 @@
-from abc import ABC, abstractmethod
+from pprint import pprint
+from typing import List, Union, Optional
+
+from Pieces import Piece, PieceType, PieceColor
 
 
-class PieceType:
-    PAWN = 1
-    KNIGHT = 2
-    BISHOP = 3
-    ROOK = 4
-    QUEEN = 5
-    KING = 6
+class Board:
+    def __init__(self):
+        self.board: List[List[Optional[Piece]]] = [
+            [None for _ in range(8)] for _ in range(8)
+        ]
+        self.reset()
 
+    def reset(self):
+        for i, piece in enumerate([
+            PieceType.ROOK,
+            PieceType.KNIGHT,
+            PieceType.BISHOP,
+            PieceType.QUEEN,
+            PieceType.KING,
+            PieceType.BISHOP,
+            PieceType.KNIGHT,
+            PieceType.ROOK,
+        ]):
+            self.board[0][i] = Piece(piece, PieceColor.WHITE)
+            self.board[1][i] = Piece(PieceType.PAWN, PieceColor.WHITE)
+            self.board[6][i] = Piece(PieceType.PAWN, PieceColor.BLACK)
+            self.board[7][i] = Piece(piece, PieceColor.BLACK)
 
-class Piece(ABC):
-    def __init__(self, start_position: tuple, piece_type: PieceType):
-        self.position = start_position
-        self.type = piece_type
-
-    @abstractmethod
-    def can_move(self):
+    def move(self, start, destination):
         pass
+
+
+if __name__ == '__main__':
+    board = Board()
+    pprint(board.board)
