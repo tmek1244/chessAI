@@ -1,6 +1,9 @@
 from abc import ABC, abstractmethod
 from enum import Enum
 
+from chessEngine import BoardField
+from common import translate
+
 
 class PieceType(Enum):
     PAWN = 1
@@ -20,10 +23,12 @@ class Piece:
     def __init__(
             self,
             piece_type: PieceType,
-            piece_color: PieceColor
+            piece_color: PieceColor,
+            position: str
     ):
         self.type = piece_type
         self.color = piece_color
+        self.position = position
 
     def __str__(self):
         match self.type:
@@ -42,3 +47,10 @@ class Piece:
 
     def __repr__(self):
         return self.__str__()
+
+    def can_move(
+            self,
+            end: str | tuple[int, int],
+            board: BoardField
+    ) -> bool | tuple[bool, str]:
+        return not (board[end] and board[end].color == self.color)
