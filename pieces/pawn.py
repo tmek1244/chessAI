@@ -14,9 +14,15 @@ class Pawn(Piece):
         row_dest, col_dest = translate(end)
 
         if self.color == PieceColor.WHITE:
+            # move by one
+            if col_dest == col_start and row_start + 1 == row_dest:
+                return board[end] is None
+            # move by two
+            if col_dest == col_start and row_start + 2 == row_start:
+
             if not (row_start < row_dest < row_start + 2):
                 return False
-            if row_start + 2 == row_dest:
+            if col_dest == col_start and row_start + 2 == row_dest:
                 if board.is_between(self.position, end):
                     return False
                 return True
@@ -31,14 +37,13 @@ class Pawn(Piece):
                 return False
             else:
                 if board[end]:
-                    return 7
-                board.move(self.position, end)
-                return 0
+                    return False
+                return True
 
         if self.color == PieceColor.BLACK:
             if not (row_start > row_dest > row_start - 2):
                 return False
-            if row_start - 2 == row_dest:
+            if col_dest == col_start and row_start - 2 == row_dest:
                 if board.is_between(self.position, end):
                     return False
                 return True
@@ -53,6 +58,5 @@ class Pawn(Piece):
                 return False
             else:
                 if board[end]:
-                    return 7
-                board.move(self.position, end)
-                return 0
+                    return False
+                return True
