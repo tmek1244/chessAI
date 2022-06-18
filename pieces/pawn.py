@@ -18,45 +18,39 @@ class Pawn(Piece):
             if col_dest == col_start and row_start + 1 == row_dest:
                 return board[end] is None
             # move by two
-            if col_dest == col_start and row_start + 2 == row_start:
-
-            if not (row_start < row_dest < row_start + 2):
-                return False
-            if col_dest == col_start and row_start + 2 == row_dest:
-                if board.is_between(self.position, end):
-                    return False
-                return True
-            if col_dest != col_start:
-                if abs(col_dest - col_start) != 1:
-                    return False
+            if col_dest == col_start and row_start == 1 and row_dest == 3:
+                return (not board.is_between(self.position, end)
+                        and board[end] is None)
+            # take
+            if abs(col_dest - col_start) == 1 and row_start + 1 == row_dest:
+                # normal take
                 if board[end]:
                     return True
-                if (board[row_start, col_dest]
-                        and board[row_start, col_dest].type == PieceType.PAWN):
-                    return True, "en_passant"
+                # en passant
+                if (row_start == 4 and
+                        board[row_start, col_dest] and
+                        board[row_start, col_dest].type == PieceType.PAWN):
+                    return True
                 return False
-            else:
-                if board[end]:
-                    return False
-                return True
 
         if self.color == PieceColor.BLACK:
-            if not (row_start > row_dest > row_start - 2):
-                return False
-            if col_dest == col_start and row_start - 2 == row_dest:
-                if board.is_between(self.position, end):
-                    return False
-                return True
-            if col_dest != col_start:
-                if abs(col_dest - col_start) != 1:
-                    return False
+            # move by one
+            if col_dest == col_start and row_start - 1 == row_dest:
+                return board[end] is None
+            # move by two
+            if col_dest == col_start and row_start == 6 and row_dest == 4:
+                return (not board.is_between(self.position, end)
+                        and board[end] is None)
+
+            # take
+            if abs(col_dest - col_start) == 1 and row_start - 1 == row_dest:
+                # normal take
                 if board[end]:
                     return True
-                if (board[row_start, col_dest]
-                        and board[row_start, col_dest].type == PieceType.PAWN):
-                    return True, "en_passant"
+                # en passant
+                if (row_start == 4 and
+                        board[row_start, col_dest] and
+                        board[row_start, col_dest].type == PieceType.PAWN):
+                    return True
                 return False
-            else:
-                if board[end]:
-                    return False
-                return True
+        return False
