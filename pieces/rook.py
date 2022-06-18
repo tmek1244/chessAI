@@ -3,9 +3,9 @@ from common import translate
 from pieces.pieces import Piece, PieceType, PieceColor
 
 
-class Queen(Piece):
+class Rook(Piece):
     def __init__(self, color, position):
-        super().__init__(PieceType.QUEEN, color, position)
+        super().__init__(PieceType.ROOK, color, position)
 
     def _can_move(self, end, board: BoardField):
         if not super().can_move(end, board):

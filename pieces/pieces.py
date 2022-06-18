@@ -1,6 +1,6 @@
 from enum import Enum
 
-from chessEngine import BoardField
+from common import BoardField
 from pieces.pawn import Pawn
 from pieces.knight import Knight
 from pieces.bishop import Bishop
@@ -56,8 +56,19 @@ class Piece:
             self,
             end: str | tuple[int, int],
             board: BoardField
+    ) -> tuple[bool, str]:
+        if board[end] and board[end].color == self.color:
+            return False, "Cannot take own piece"
+
+        output = self._can_move(end, board)
+        return output, "" if type(output) == bool else output
+
+    def _can_move(
+            self,
+            end: str | tuple[int, int],
+            board: BoardField
     ) -> bool | tuple[bool, str]:
-        return not (board[end] and board[end].color == self.color)
+        ...
 
 
 def create_piece(
