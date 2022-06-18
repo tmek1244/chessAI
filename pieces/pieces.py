@@ -1,8 +1,12 @@
-from abc import ABC, abstractmethod
 from enum import Enum
 
 from chessEngine import BoardField
-from common import translate
+from pieces.pawn import Pawn
+from pieces.knight import Knight
+from pieces.bishop import Bishop
+from pieces.rook import Rook
+from pieces.queen import Queen
+from pieces.king import King
 
 
 class PieceType(Enum):
@@ -24,7 +28,7 @@ class Piece:
             self,
             piece_type: PieceType,
             piece_color: PieceColor,
-            position: str
+            position: str | tuple[int, int]
     ):
         self.type = piece_type
         self.color = piece_color
@@ -54,3 +58,17 @@ class Piece:
             board: BoardField
     ) -> bool | tuple[bool, str]:
         return not (board[end] and board[end].color == self.color)
+
+
+def create_piece(
+        piece: PieceType,
+        color: PieceColor,
+        position: str | tuple[int, int]) -> Piece:
+    return {
+        PieceType.PAWN: Pawn,
+        PieceType.KNIGHT: Knight,
+        PieceType.BISHOP: Bishop,
+        PieceType.ROOK: Rook,
+        PieceType.QUEEN: Queen,
+        PieceType.KING: King
+    }[piece](color, position)
