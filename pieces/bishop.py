@@ -3,9 +3,9 @@ from common import translate
 from pieces.pieces import Piece, PieceType, PieceColor
 
 
-class Knight(Piece):
+class Bishop(Piece):
     def __init__(self, color, position):
-        super().__init__(PieceType.KNIGHT, color, position)
+        super().__init__(PieceType.BISHOP, color, position)
 
     def can_move(self, end, board: BoardField):
         if not super().can_move(end, board):
