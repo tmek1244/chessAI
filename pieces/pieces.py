@@ -1,6 +1,6 @@
 from enum import Enum
 
-from common import BoardField
+from common import BoardField, Coords
 from pieces.pawn import Pawn
 from pieces.knight import Knight
 from pieces.bishop import Bishop
@@ -61,11 +61,11 @@ class Piece:
             return False, "Cannot take own piece"
 
         output = self._can_move(end, board)
-        return output, "" if type(output) == bool else output
+        return (output, "") if type(output) == bool else output
 
     def _can_move(
             self,
-            end: str | tuple[int, int],
+            end: Coords,
             board: BoardField
     ) -> bool | tuple[bool, str]:
         ...

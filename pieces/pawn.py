@@ -1,5 +1,5 @@
 from chessEngine import BoardField
-from common import translate
+from common import translate, Coords
 from pieces.pieces import Piece, PieceType, PieceColor
 
 
@@ -7,7 +7,8 @@ class Pawn(Piece):
     def __init__(self, color, position):
         super().__init__(PieceType.PAWN, color, position)
 
-    def _can_move(self, end, board: BoardField) -> bool | tuple[bool, str]:
+    def _can_move(
+            self, end: Coords, board: BoardField) -> bool | tuple[bool, str]:
         info = ""
         if not super().can_move(end, board):
             return False, info

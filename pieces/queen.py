@@ -13,5 +13,9 @@ class Queen(Piece):
         row_start, col_start = translate(self.position)
         row_dest, col_dest = translate(end)
 
-        if self.color == PieceColor.WHITE:
-            ...
+        # move or take
+        if (row_start == row_dest or
+                col_start == col_dest or
+                abs(row_start - row_dest) == abs(col_start - col_dest)):
+            return not board.is_between(self.position, end)
+        return False
