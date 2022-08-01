@@ -30,19 +30,19 @@ class King(Piece):
     def _can_castle_short(self, row_dest, col_dest, board: BoardField):
         return (
             (not board.is_between(self.position, (row_dest, 7))) and
-            (not self.moved) and
+            (not self.when_moved) and
             (not self.under_check(self.position)) and
             (not self.under_check((row_dest, 5))) and
             (not self.under_check((row_dest, 6))) and
             (row_dest == 0 if self.color == PieceColor.WHITE else row_dest == 7) and
             (col_dest == 6) and
             (board[(row_dest, 7)].type == PieceType.ROOK) and
-            (not board[(row_dest, 7)].moved)
+            (not board[(row_dest, 7)].when_moved)
         )
 
     def _can_castle_long(self, row_dest, col_dest, board: BoardField):
         return (
-            (not self.moved) and
+            (not self.when_moved) and
             (not board.is_between(self.position, (row_dest, 0))) and
             (not self.under_check(self.position)) and
             (not self.under_check((row_dest, 3))) and
@@ -50,5 +50,5 @@ class King(Piece):
             (row_dest == 0 if self.color == PieceColor.WHITE else row_dest == 7) and
             (col_dest == 2) and
             (board[(row_dest, 0)].type == PieceType.ROOK) and
-            (not board[(row_dest, 0)].moved)
+            (not board[(row_dest, 0)].when_moved)
         )
