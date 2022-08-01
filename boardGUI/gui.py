@@ -75,7 +75,8 @@ class BoardGui:
                         log.debug(f"Piece {piece.type} {piece.color} pressed")
                         self.piece_pressed = piece
 
-                        self.possible_moves = piece.get_all_moves(self.engine_board.board)
+                        self.possible_moves = piece.get_all_moves(
+                            self.engine_board.board, self.engine_board.next_move)
                         log.info(f"Possible moves: {self.possible_moves}")
             elif event.type == pygame.MOUSEBUTTONUP:
                 if self.piece_pressed:

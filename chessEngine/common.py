@@ -167,8 +167,11 @@ class Piece:
     ) -> bool | tuple[bool, str]:
         ...
     
-    def get_all_moves(self, board: BoardField) -> list[tuple[int, int]]:
+    def get_all_moves(
+        self, board: BoardField, whose_move: Optional[PieceColor] = None) -> list[tuple[int, int]]:
         result = []
+        if whose_move and whose_move != self.color:
+            return []
         for i in range(8):
             for j in range(8):
                 can_move, _ = self.can_move((i, j), board)
