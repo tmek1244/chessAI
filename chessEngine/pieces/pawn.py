@@ -62,13 +62,18 @@ class Pawn(Piece):
     
     def _take(self, row_start, col_start, row_dest, col_dest):
         return (
-            abs(col_dest - col_start) == 1 and
-            row_start + 1 == row_dest if self.color == PieceColor.WHITE else row_start - 1 == row_dest
+            (abs(col_dest - col_start) == 1) and
+            (row_start + 1 == row_dest 
+            if self.color == PieceColor.WHITE 
+            else row_start - 1 == row_dest)
         )
 
-    def _en_passant(self, row_start, col_dest, board):
+    def _en_passant(self, row_start, col_dest, board: BoardField):
         return (
-            board[row_start, col_dest] and
-            board[row_start, col_dest].type == PieceType.PAWN and
-            row_start == 4 if self.color == PieceColor.WHITE else row_start == 3
+            (board[row_start, col_dest]) and
+            (board[row_start, col_dest].type == PieceType.PAWN) and
+            (board[row_start, col_dest].color != self.color) and
+            (row_start == 4 if self.color == PieceColor.WHITE else row_start == 3) and 
+            (board[row_start, col_dest].when_moved[-1] == board.move_counter) and
+            (len(board[row_start, col_dest].when_moved) == 1)
         )

@@ -12,6 +12,7 @@ class Board:
         self.board = BoardField()
         self.history = []
         self.next_move = PieceColor.WHITE
+        self.move_counter = 0
 
         if not empty:
             self.reset()
@@ -19,6 +20,7 @@ class Board:
     def reset(self):
         self.board.clear()
         self.next_move: PieceColor = PieceColor.WHITE
+        self.move_counter = 0
 
         for i, piece in enumerate([
             PieceType.ROOK,
@@ -57,34 +59,38 @@ class Board:
             log.error(f"It's now a {self.next_move} move")
             return 0
 
-        if piece.type == PieceType.PAWN:
-            pass
-            # TODO en passant
         can_move, info = piece.can_move(destination, self.board)
         log.info(info)
         if not can_move:
             return 0
 
         if info == 'short':
-            self.board.move(start, destination)
-            self.board.move((row_start, 7), (row_start, 5))
+            self.board.move(start, destination, self.move_counter)
+            self.board.move((row_start, 7), (row_start, 5), self.move_counter)
             self.next_move = (
                 PieceColor.BLACK if self.next_move == PieceColor.WHITE 
                 else PieceColor.WHITE
             )
         elif info == "long":
-            self.board.move(start, destination)
-            self.board.move((row_start, 0), (row_start, 3))
+            self.board.move(start, destination, self.move_counter)
+            self.board.move((row_start, 0), (row_start, 3), self.move_counter)
+            self.next_move = (
+                PieceColor.BLACK if self.next_move == PieceColor.WHITE 
+                else PieceColor.WHITE
+            )
+        elif info == "en_passant":
+            self.board.en_passant(start, destination, self.move_counter)
             self.next_move = (
                 PieceColor.BLACK if self.next_move == PieceColor.WHITE 
                 else PieceColor.WHITE
             )
         elif self._is_legal():
-            self.board.move(start, destination)
+            self.board.move(start, destination, self.move_counter)
             self.next_move = (
                 PieceColor.BLACK if self.next_move == PieceColor.WHITE 
                 else PieceColor.WHITE
             )
+        self.move_counter += 1
 
         return 0
 

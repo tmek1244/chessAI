@@ -31,6 +31,7 @@ class BoardField:
             [None for _ in range(8)] for _ in range(8)
         ]
         self.pieces: set['Piece'] = set()
+        self.move_counter = 0
 
     def __getitem__(self, item: Coords) -> Optional['Piece']:
         row, col = translate(item)
@@ -75,7 +76,7 @@ class BoardField:
                       and self.board[row_start + i][col_start - i]):
                     return True
 
-    def move(self, start: Coords, end: Coords):
+    def move(self, start: Coords, end: Coords, move_counter: int):
         row_start, col_start = translate(start)
         row_end, col_end = translate(end)
 
@@ -85,21 +86,21 @@ class BoardField:
             self.pieces.remove(self.board[row_end][col_end])
         
         self.board[row_end][col_end] = self.board[row_start][col_start]
-        print(self.board[row_end][col_end])
         self.board[row_start][col_start] = None
-        print(self.board[row_end][col_end])
         self.board[row_end][col_end].position = (row_end, col_end)
-        self.board[row_end][col_end].moved = True
+        self.board[row_end][col_end].when_moved.append(move_counter)
+        self.move_counter = move_counter
 
     def promote(self, position: Coords, new_piece: 'Piece'):
         row, col = translate(position)
         self.board[row][col] = new_piece
 
-    def en_passant(self, start: Coords, end: Coords):
+    def en_passant(self, start: Coords, end: Coords, move_counter: int):
         row_start, _ = translate(start)
         _, col_end = translate(end)
 
-        self.move(start, end)
+        self.move(start, end, move_counter)
+        self.pieces.remove(self.board[row_start][col_end])
         self.board[row_start][col_end] = None
 
 
@@ -127,7 +128,7 @@ class Piece:
         self.type = piece_type
         self.color = piece_color
         self.position = position
-        self.moved = False
+        self.when_moved = []
 
     def __str__(self):
         return f"{self.type}:{self.color} [{self.position}]"
