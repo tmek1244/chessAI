@@ -13,7 +13,6 @@ class King(Piece):
 
         # normal move
         if abs(row_start - row_dest) + abs(col_start - col_dest) == 1:
-            print("IN")
             return not self.under_check()
 
         # Board makes sure that both rook and king haven't moved yet
@@ -30,18 +29,26 @@ class King(Piece):
 
     def _can_castle_short(self, row_dest, col_dest, board: BoardField):
         return (
-            not self.moved and
-            row_dest == 0 if self.color == PieceColor.WHITE else row_dest == 7 and
-            col_dest == 6 and
-            board[(row_dest, 7)] == PieceType.ROOK and
-            not board[(row_dest, 7)].moved
+            (not board.is_between(self.position, (row_dest, 7))) and
+            (not self.moved) and
+            (not self.under_check(self.position)) and
+            (not self.under_check((row_dest, 5))) and
+            (not self.under_check((row_dest, 6))) and
+            (row_dest == 0 if self.color == PieceColor.WHITE else row_dest == 7) and
+            (col_dest == 6) and
+            (board[(row_dest, 7)].type == PieceType.ROOK) and
+            (not board[(row_dest, 7)].moved)
         )
 
     def _can_castle_long(self, row_dest, col_dest, board: BoardField):
         return (
-            not self.moved and
-            row_dest == 0 if self.color == PieceColor.WHITE else row_dest == 7 and
-            col_dest == 2 and
-            board[(row_dest, 0)] == PieceType.ROOK and
-            not board[(row_dest, 0)].moved
+            (not self.moved) and
+            (not board.is_between(self.position, (row_dest, 0))) and
+            (not self.under_check(self.position)) and
+            (not self.under_check((row_dest, 3))) and
+            (not self.under_check((row_dest, 2))) and
+            (row_dest == 0 if self.color == PieceColor.WHITE else row_dest == 7) and
+            (col_dest == 2) and
+            (board[(row_dest, 0)].type == PieceType.ROOK) and
+            (not board[(row_dest, 0)].moved)
         )

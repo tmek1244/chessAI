@@ -66,9 +66,20 @@ class Board:
             return 0
 
         if info == 'short':
-            ...
-
-        if self._is_legal():
+            self.board.move(start, destination)
+            self.board.move((row_start, 7), (row_start, 5))
+            self.next_move = (
+                PieceColor.BLACK if self.next_move == PieceColor.WHITE 
+                else PieceColor.WHITE
+            )
+        elif info == "long":
+            self.board.move(start, destination)
+            self.board.move((row_start, 0), (row_start, 3))
+            self.next_move = (
+                PieceColor.BLACK if self.next_move == PieceColor.WHITE 
+                else PieceColor.WHITE
+            )
+        elif self._is_legal():
             self.board.move(start, destination)
             self.next_move = (
                 PieceColor.BLACK if self.next_move == PieceColor.WHITE 

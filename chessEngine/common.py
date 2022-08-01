@@ -1,10 +1,10 @@
-from typing import NewType, Optional
+from typing import NewType, Optional, Union
 from enum import Enum
 
 import logging
 log = logging.getLogger(__name__)
 
-Coords = NewType("Coords", str | tuple[int, int])
+Coords = NewType("Coords", Union[str, tuple[int, int]])
 
 
 def translate(key: Coords) -> tuple[int, int]:
@@ -79,11 +79,15 @@ class BoardField:
         row_start, col_start = translate(start)
         row_end, col_end = translate(end)
 
+        log.info(f"Moving from {row_start}:{col_start} to {row_end}:{col_end}")
+
         if self.board[row_end][col_end]:
             self.pieces.remove(self.board[row_end][col_end])
         
         self.board[row_end][col_end] = self.board[row_start][col_start]
+        print(self.board[row_end][col_end])
         self.board[row_start][col_start] = None
+        print(self.board[row_end][col_end])
         self.board[row_end][col_end].position = (row_end, col_end)
         self.board[row_end][col_end].moved = True
 
@@ -126,19 +130,20 @@ class Piece:
         self.moved = False
 
     def __str__(self):
-        match self.type:
-            case PieceType.PAWN:
-                return "P"
-            case PieceType.ROOK:
-                return "R"
-            case PieceType.KNIGHT:
-                return "N"
-            case PieceType.BISHOP:
-                return "B"
-            case PieceType.QUEEN:
-                return "Q"
-            case PieceType.KING:
-                return "K"
+        return f"{self.type}:{self.color} [{self.position}]"
+        # match self.type:
+        #     case PieceType.PAWN:
+        #         return "P"
+        #     case PieceType.ROOK:
+        #         return "R"
+        #     case PieceType.KNIGHT:
+        #         return "N"
+        #     case PieceType.BISHOP:
+        #         return "B"
+        #     case PieceType.QUEEN:
+        #         return "Q"
+        #     case PieceType.KING:
+        #         return "K"
 
     def __repr__(self):
         return self.__str__()
