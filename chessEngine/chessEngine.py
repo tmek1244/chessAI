@@ -1,3 +1,4 @@
+from copy import deepcopy
 from chessEngine.common import translate, Coords, BoardField, PieceType, PieceColor
 from chessEngine.pieces.pieces import create_piece
 
@@ -64,37 +65,42 @@ class Board:
         if not can_move:
             return 0
 
+        board_copy = deepcopy(self.board)
         if info == 'short':
-            self.board.move(start, destination, self.move_counter)
-            self.board.move((row_start, 7), (row_start, 5), self.move_counter)
-            self.next_move = (
-                PieceColor.BLACK if self.next_move == PieceColor.WHITE 
-                else PieceColor.WHITE
-            )
+            board_copy.move(start, destination, self.move_counter)
+            board_copy.move((row_start, 7), (row_start, 5), self.move_counter)
         elif info == "long":
-            self.board.move(start, destination, self.move_counter)
-            self.board.move((row_start, 0), (row_start, 3), self.move_counter)
-            self.next_move = (
-                PieceColor.BLACK if self.next_move == PieceColor.WHITE 
-                else PieceColor.WHITE
-            )
+            board_copy.move(start, destination, self.move_counter)
+            board_copy.move((row_start, 0), (row_start, 3), self.move_counter)
         elif info == "en_passant":
-            self.board.en_passant(start, destination, self.move_counter)
-            self.next_move = (
-                PieceColor.BLACK if self.next_move == PieceColor.WHITE 
-                else PieceColor.WHITE
-            )
-        elif self._is_legal():
-            self.board.move(start, destination, self.move_counter)
-            self.next_move = (
+            board_copy.en_passant(start, destination, self.move_counter)
+        else:
+            board_copy.move(start, destination, self.move_counter)
+        if self._is_legal(board_copy):
+            if info == 'short':
+                self.board.move(start, destination, self.move_counter)
+                self.board.move((row_start, 7), (row_start, 5), self.move_counter)
+            elif info == "long":
+                self.board.move(start, destination, self.move_counter)
+                self.board.move((row_start, 0), (row_start, 3), self.move_counter)
+            elif info == "en_passant":
+                self.board.en_passant(start, destination, self.move_counter)
+            else:
+                self.board.move(start, destination, self.move_counter)
+        else:
+            return 1
+
+        self.next_move = (
                 PieceColor.BLACK if self.next_move == PieceColor.WHITE 
                 else PieceColor.WHITE
             )
         self.move_counter += 1
-
         return 0
 
-    def _is_legal(self):
+    def _is_legal(self, board: BoardField):
+        for piece in board.pieces:
+            if piece.type == PieceType.KING and piece.color == self.next_move and piece.under_check(board, piece.position):
+                return False
         return True
 
 
