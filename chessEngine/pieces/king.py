@@ -37,6 +37,9 @@ class King(Piece):
             
 
     def under_check(self, board, position: Coords = None):
+        if position == None:
+            position = self.position
+
         for direction in [(1, 0), (0, 1), (-1, 0), (0, -1)]:
             piece_n_counter = self._run_trace(position, *direction, board)
             if piece_n_counter:
@@ -67,6 +70,15 @@ class King(Piece):
                     return True
                 if self.color == PieceColor.BLACK and counter == 1 and piece.type == PieceType.PAWN:
                     return True
+        
+        for i in [-2, 2]:
+            for j in [1, -1]:
+                piece1 = board[(position[0]+i, position[1] + j)]
+                piece2 = board[(position[0]+j, position[1] + i)]
+                if piece1 and piece1.color != self.color and piece1.type == PieceType.KNIGHT:
+                    return True
+                if piece2 and piece2.color != self.color and piece2.type == PieceType.KNIGHT:
+                    return True
 
         return False
 
@@ -74,7 +86,7 @@ class King(Piece):
         return (
             (not board.is_between(self.position, (row_dest, 7))) and
             (not self.when_moved) and
-            (not self.under_check(board, self.position)) and
+            (not self.under_check(board)) and
             (not self.under_check(board, (row_dest, 5))) and
             (not self.under_check(board, (row_dest, 6))) and
             (row_dest == 0 if self.color == PieceColor.WHITE else row_dest == 7) and
@@ -87,7 +99,7 @@ class King(Piece):
         return (
             (not self.when_moved) and
             (not board.is_between(self.position, (row_dest, 0))) and
-            (not self.under_check(board, self.position)) and
+            (not self.under_check(board)) and
             (not self.under_check(board, (row_dest, 3))) and
             (not self.under_check(board, (row_dest, 2))) and
             (row_dest == 0 if self.color == PieceColor.WHITE else row_dest == 7) and

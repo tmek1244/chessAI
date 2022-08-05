@@ -7,7 +7,7 @@ logging.basicConfig(level = logging.DEBUG)
 log = logging.getLogger(__name__)
 
 
-from piece import PieceGUI
+from .piece import PieceGUI
 from chessEngine.chessEngine import Board
 
 SCREEN_WIDTH = 800

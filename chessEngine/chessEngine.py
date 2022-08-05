@@ -58,12 +58,12 @@ class Board:
 
         if piece.color != self.next_move:
             log.error(f"It's now a {self.next_move} move")
-            return 0
+            return 1
 
         can_move, info = piece.can_move(destination, self.board)
         log.info(info)
         if not can_move:
-            return 0
+            return 1
 
         board_copy = deepcopy(self.board)
         if info == 'short':

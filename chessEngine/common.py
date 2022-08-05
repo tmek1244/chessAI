@@ -35,6 +35,8 @@ class BoardField:
 
     def __getitem__(self, item: Coords) -> Optional['Piece']:
         row, col = translate(item)
+        if row < 0 or row > 7 or col < 0 or col > 7:
+            return None
         return self.board[row][col]
 
     def __setitem__(self, key: Coords, value: 'Piece') -> None:

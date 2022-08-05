@@ -1,3 +1,4 @@
+import os
 import pygame
 from enum import Enum
 
@@ -26,9 +27,10 @@ class PieceGUI(pygame.sprite.Sprite):
                     PieceColor.BLACK: 'black',
                     PieceColor.WHITE: 'white'
                 }[piece_color]
-
+                base_path = os.path.dirname(__file__)
+                piece_path = os.path.join(base_path, f'images/{color_str}_{type_str}.png')
                 self.images[(piece_type, piece_color)] = pygame.transform.scale(
-                    pygame.image.load(f'images/{color_str}_{type_str}.png'),
+                    pygame.image.load(piece_path),
                     (width, height)
                 )
 
