@@ -57,7 +57,7 @@ class Board:
         row_dest, col_dest = translate(destination)
 
         if piece.color != self.next_move:
-            log.error(f"It's now a {self.next_move} move")
+            # log.error(f"It's now a {self.next_move} move")
             return 1
 
         can_move, info = piece.can_move(destination, self.board)

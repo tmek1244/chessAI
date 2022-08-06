@@ -24,7 +24,7 @@ def test_possible_moves():
     # for piece in engine_board.board.pieces:
     #     moves += len(piece.get_all_moves(engine_board.board, PieceColor.WHITE))
     
-    print(possible_moves_step(engine_board, PieceColor.WHITE, 5))
+    print(possible_moves_step(engine_board, PieceColor.WHITE, 4))
         
 
 def main():
@@ -33,3 +33,4 @@ def main():
 
 if __name__ == '__main__':
     main()
+

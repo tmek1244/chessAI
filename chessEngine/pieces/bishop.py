@@ -13,5 +13,5 @@ class Bishop(Piece):
 
         # move or take
         if abs(row_start - row_dest) == abs(col_start - col_dest):
-            return not board.is_between(self.position, end)
+            return not board.is_between(self.position, end) and self.king_not_under_check(end, board)
         return False

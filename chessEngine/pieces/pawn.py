@@ -21,20 +21,20 @@ class Pawn(Piece):
             info = "promote"
         # move by one
         if self._move_by_one(row_start, col_start, row_dest, col_dest):
-            return board[end] is None, info
+            return (board[end] is None and self.king_not_under_check(end, board)), info
         # move by two
         if self._move_by_two(row_start, col_start, row_dest, col_dest):
             return (not board.is_between(self.position, end)
-                    and board[end] is None), info
+                    and board[end] is None and self.king_not_under_check(end, board)), info
 
         # take
         if self._take(row_start, col_start, row_dest, col_dest):
             # normal take
             if board[end]:
-                return True, info
+                return self.king_not_under_check(end, board), info
             # en passant
             if self._en_passant(row_start, col_dest, board):
-                return True, "en_passant"
+                return self.king_not_under_check(end, board), "en_passant"
             return False
 
         return False

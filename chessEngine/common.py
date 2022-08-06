@@ -1,5 +1,5 @@
 from typing import NewType, Optional, Union
-from enum import Enum
+from enum import Enum, IntEnum
 
 import logging
 log = logging.getLogger(__name__)
@@ -25,6 +25,20 @@ def translate(key: Coords) -> tuple[int, int]:
         return int(key[1]) - 1, mapping[key[0]]
 
 
+class PieceType(Enum):
+    PAWN = 1
+    KNIGHT = 2
+    BISHOP = 3
+    ROOK = 4
+    QUEEN = 5
+    KING = 6
+
+
+class PieceColor(IntEnum):
+    WHITE = 0
+    BLACK = 1
+
+
 class BoardField:
     def __init__(self):
         self.board: list[list[Optional['Piece']]] = [
@@ -32,6 +46,7 @@ class BoardField:
         ]
         self.pieces: set['Piece'] = set()
         self.move_counter = 0
+        self.kings: list['Piece'] = [None, None]
 
     def __getitem__(self, item: Coords) -> Optional['Piece']:
         row, col = translate(item)
@@ -39,10 +54,12 @@ class BoardField:
             return None
         return self.board[row][col]
 
-    def __setitem__(self, key: Coords, value: 'Piece') -> None:
+    def __setitem__(self, key: Coords, piece: 'Piece') -> None:
         row, col = translate(key)
-        self.pieces.add(value)
-        self.board[row][col] = value
+        if piece.type == PieceType.KING:
+            self.kings[piece.color] = piece
+        self.pieces.add(piece)
+        self.board[row][col] = piece
 
     def clear(self):
         self.board: list[list[Optional['Piece']]] = [
@@ -106,20 +123,6 @@ class BoardField:
         self.board[row_start][col_end] = None
 
 
-class PieceType(Enum):
-    PAWN = 1
-    KNIGHT = 2
-    BISHOP = 3
-    ROOK = 4
-    QUEEN = 5
-    KING = 6
-
-
-class PieceColor(Enum):
-    WHITE = 1
-    BLACK = 2
-
-
 class Piece:
     def __init__(
             self,
@@ -180,3 +183,61 @@ class Piece:
                 if can_move:
                     result.append((i, j))
         return result
+    
+    # def king_not_under_check(self, next_position, board: BoardField):
+    #     resutl = self._king_not_under_check(next_position, board)
+    #     if resutl == False:
+    #         print(self.position, next_position, self.type)
+    #     return resutl
+
+    def king_not_under_check(self, next_position, board: BoardField):
+        row, col = translate(self.position)
+        next_row, next_col = translate(next_position)
+        king_row, king_col = translate(board.kings[self.color].position)
+
+        if row != king_row and col != king_col and abs(row - king_row) != abs(col - king_col):
+            return True
+
+        if row == king_row and next_row != row and not board.is_between(self.position, board.kings[self.color].position):
+            if col > king_col:
+                for i in range(col+1, 8):
+                    if board[(row, i)]:
+                        return (
+                            board[(row, i)].type not in [PieceType.QUEEN, PieceType.ROOK] 
+                            or board[(row, i)].color == self.color)
+            else:
+                for i in range(col-1, 0, -1):
+                    if board[(row, i)]:
+                        return (
+                            board[(row, i)].type not in [PieceType.QUEEN, PieceType.ROOK] 
+                            or board[(row, i)].color == self.color)
+        if col == king_row and next_col != col and not board.is_between(self.position, board.kings[self.color].position):
+            if row > king_row:
+                for i in range(row+1, 8):
+                    if board[(i, col)]:
+                        return (
+                            board[(i, col)].type not in [PieceType.QUEEN, PieceType.ROOK] 
+                            or board[(i, col)].color == self.color)
+            else:
+                for i in range(row-1, 0, -1):
+                    if board[(i, col)]:
+                        return (
+                            board[(i, col)].type not in [PieceType.QUEEN, PieceType.ROOK] 
+                            or board[(i, col)].color == self.color)
+        
+        if abs(row - king_row) == abs(col - king_col) and not board.is_between(self.position, board.kings[self.color].position):
+            if abs(row - next_row) == abs(col - next_col) and abs(next_row - king_row) == abs(next_col - king_col):
+                return True
+            row_inc = 1 if row > king_row else -1
+            col_inc = 1 if col > king_col else -1
+
+            row_it, col_it = row + row_inc, col + col_inc
+            while row_it > -1 and row_it < 8 and col_it > -1 and col_it < 8:
+                if board[(row_it, col_it)]:
+                    return (
+                        board[(row_it, col_it)].type not in [PieceType.QUEEN, PieceType.BISHOP] 
+                        or board[(row_it, col_it)].color == self.color)
+
+                row_it += row_inc
+                col_it += col_inc
+        return True

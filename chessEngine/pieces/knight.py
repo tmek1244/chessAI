@@ -15,5 +15,5 @@ class Knight(Piece):
         if ((abs(row_start - row_dest) == 2 and abs(col_start - col_dest) == 1)
                 or (abs(row_start - row_dest) == 1
                     and abs(col_start - col_dest) == 2)):
-            return True
+            return self.king_not_under_check(end, board)
         return False
