@@ -46,7 +46,8 @@ class BoardField:
         ]
         self.pieces: set['Piece'] = set()
         self.move_counter = 0
-        self.kings: list['Piece'] = [None, None]
+        self.kings: list[Optional('Piece')] = [None, None]
+        self.under_check: list[Optional('Piece')] = [None, None]
 
     def __getitem__(self, item: Coords) -> Optional['Piece']:
         row, col = translate(item)
@@ -108,7 +109,9 @@ class BoardField:
         self.board[row_start][col_start] = None
         self.board[row_end][col_end].position = (row_end, col_end)
         self.board[row_end][col_end].when_moved.append(move_counter)
-        self.move_counter = move_counter
+        self.move_counter = move_counter #TODO
+        if self.board[row_end][col_end].enemy_king_under_check():
+            self.under_check[(self.board[row_end][col_end].color + 2)%2] = self.board[row_end][col_end].color
 
     def promote(self, position: Coords, new_piece: 'Piece'):
         row, col = translate(position)
@@ -195,6 +198,39 @@ class Piece:
         next_row, next_col = translate(next_position)
         king_row, king_col = translate(board.kings[self.color].position)
 
+        if (enemy_piece := board.under_check[self.color]):
+            enemy_row, enemy_col = translate(enemy_piece.position)
+            
+            if enemy_piece.type in [PieceType.BISHOP, PieceType.QUEEN]:
+                if abs(next_row - king_row) == abs(next_col - king_col):
+                    if (
+                        not (
+                            (enemy_row >= next_row > king_row or enemy_row <= next_row < king_row) and 
+                            (enemy_col >= next_col > king_col or enemy_col <= next_col < king_col))
+                        ):
+                        return False
+                else:
+                    return False
+            
+            if enemy_piece.type in [PieceType.QUEEN, PieceType.ROOK]:
+                if enemy_row == king_row:
+                    if next_row != enemy_row:
+                        return False
+                    if not (enemy_col >= next_col > king_col or enemy_col <= next_col < king_col):
+                        return False
+                elif enemy_col == king_col:
+                    if next_col != enemy_col:
+                        return False
+                    if not (enemy_row >= next_row > king_row or enemy_row <= next_row < king_row):
+                        return False
+                else:
+                    return False
+            
+            if enemy_piece.type in [PieceType.PAWN, PieceType.KNIGHT]:
+                if (enemy_row, enemy_col) != (next_row, next_col):
+                    return False
+
+
         if row != king_row and col != king_col and abs(row - king_row) != abs(col - king_col):
             return True
 
@@ -241,3 +277,6 @@ class Piece:
                 row_it += row_inc
                 col_it += col_inc
         return True
+
+    def enemy_king_under_check(self, board: BoardField, position = None):
+        ...

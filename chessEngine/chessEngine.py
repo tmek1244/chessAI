@@ -65,30 +65,30 @@ class Board:
         if not can_move:
             return 1
 
-        board_copy = deepcopy(self.board)
+        # board_copy = deepcopy(self.board)
+        # if info == 'short':
+        #     board_copy.move(start, destination, self.move_counter)
+        #     board_copy.move((row_start, 7), (row_start, 5), self.move_counter)
+        # elif info == "long":
+        #     board_copy.move(start, destination, self.move_counter)
+        #     board_copy.move((row_start, 0), (row_start, 3), self.move_counter)
+        # elif info == "en_passant":
+        #     board_copy.en_passant(start, destination, self.move_counter)
+        # else:
+        #     board_copy.move(start, destination, self.move_counter)
+        # if self._is_legal(board_copy):
         if info == 'short':
-            board_copy.move(start, destination, self.move_counter)
-            board_copy.move((row_start, 7), (row_start, 5), self.move_counter)
+            self.board.move(start, destination, self.move_counter)
+            self.board.move((row_start, 7), (row_start, 5), self.move_counter)
         elif info == "long":
-            board_copy.move(start, destination, self.move_counter)
-            board_copy.move((row_start, 0), (row_start, 3), self.move_counter)
+            self.board.move(start, destination, self.move_counter)
+            self.board.move((row_start, 0), (row_start, 3), self.move_counter)
         elif info == "en_passant":
-            board_copy.en_passant(start, destination, self.move_counter)
+            self.board.en_passant(start, destination, self.move_counter)
         else:
-            board_copy.move(start, destination, self.move_counter)
-        if self._is_legal(board_copy):
-            if info == 'short':
-                self.board.move(start, destination, self.move_counter)
-                self.board.move((row_start, 7), (row_start, 5), self.move_counter)
-            elif info == "long":
-                self.board.move(start, destination, self.move_counter)
-                self.board.move((row_start, 0), (row_start, 3), self.move_counter)
-            elif info == "en_passant":
-                self.board.en_passant(start, destination, self.move_counter)
-            else:
-                self.board.move(start, destination, self.move_counter)
-        else:
-            return 1
+            self.board.move(start, destination, self.move_counter)
+        # else:
+        #     return 1
 
         self.next_move = (
                 PieceColor.BLACK if self.next_move == PieceColor.WHITE 

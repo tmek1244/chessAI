@@ -107,3 +107,6 @@ class King(Piece):
             (board[(row_dest, 0)].type == PieceType.ROOK) and
             (not board[(row_dest, 0)].when_moved)
         )
+
+    def enemy_king_under_check(self, board: BoardField, position = None):
+        return False

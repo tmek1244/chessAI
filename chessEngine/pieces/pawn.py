@@ -77,3 +77,18 @@ class Pawn(Piece):
             (board[row_start, col_dest].when_moved[-1] == board.move_counter) and
             (len(board[row_start, col_dest].when_moved) == 1)
         )
+
+    def enemy_king_under_check(self, board: BoardField, position = None):
+        if position is None:
+            position = self.position
+        
+        row, col = translate(position)
+        enemy_king = board.kings[(self.color+1)%2]
+        king_row, king_col = translate(enemy_king.position)
+
+        if (
+            abs(col - king_col) == 1 and 
+            (king_row + 1 == row if self.color == PieceColor.WHITE else king_row - 1 == row)):
+            return True
+        return False
+

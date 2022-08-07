@@ -17,3 +17,15 @@ class Knight(Piece):
                     and abs(col_start - col_dest) == 2)):
             return self.king_not_under_check(end, board)
         return False
+    
+    def enemy_king_under_check(self, board: BoardField, position = None):
+        if position is None:
+            position = self.position
+        
+        row, col = translate(position)
+        enemy_king = board.kings[(self.color+1)%2]
+        king_row, king_col = translate(enemy_king.position)
+
+        if abs(row - king_row) + abs(col - king_col) == 3 and 0 < abs(row - king_row) < 3:
+            return True 
+        return False
