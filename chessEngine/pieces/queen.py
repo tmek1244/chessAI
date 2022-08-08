@@ -10,7 +10,7 @@ class Queen(Piece):
         #     return False
         row_start, col_start = translate(self.position)
         row_dest, col_dest = translate(end)
-
+        
         # move or take
         if (row_start == row_dest or
                 col_start == col_dest or
@@ -28,11 +28,29 @@ class Queen(Piece):
 
         if row != king_row and col != king_col and abs(row - king_row) != abs(col - king_col):
             return False
-        
         if row == king_row and not board.is_between(position, enemy_king.position):
             return True
-        if col == king_row and not board.is_between(position, enemy_king.position):
+        if col == king_col and not board.is_between(position, enemy_king.position):
             return True
         if abs(row - king_row) == abs(col - king_col) and not board.is_between(position, enemy_king.position):
             return True
         return False
+
+    def get_all_moves(
+        self, board: BoardField, whose_move: PieceColor|None = None) -> list[tuple[int, int]]:
+        result = []
+        if whose_move and whose_move != self.color:
+            return []
+
+        row, col = translate(self.position)
+        for i, j in [(1, 0), (0, 1), (-1, 0), (0, -1)]:
+            next_row, next_col = row + i, col + j
+            while self.can_move((next_row, next_col), board)[0]:
+                result.append((next_row, next_col))
+                next_row, next_col = next_row + i, next_col + j
+        for i, j in [(1, 1), (1, -1), (-1, 1), (-1, -1)]:
+            next_row, next_col = row + i, col + j
+            while self.can_move((next_row, next_col), board)[0]:
+                result.append((next_row, next_col))
+                next_row, next_col = next_row + i, next_col + j
+        return result

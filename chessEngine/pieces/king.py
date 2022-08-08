@@ -110,3 +110,22 @@ class King(Piece):
 
     def enemy_king_under_check(self, board: BoardField, position = None):
         return False
+
+    def get_all_moves(
+        self, board: BoardField, whose_move: PieceColor|None = None) -> list[tuple[int, int]]:
+        result = []
+        if whose_move and whose_move != self.color:
+            return []
+
+        row, col = translate(self.position)
+        for i, j in [(1, 0), (0, 1), (-1, 0), (0, -1)]:
+            next_row, next_col = row + i, col + j
+            if self.can_move((next_row, next_col), board)[0]:
+                result.append((next_row, next_col))
+
+        for i, j in [(1, 1), (1, -1), (-1, 1), (-1, -1)]:
+            next_row, next_col = row + i, col + j
+            if self.can_move((next_row, next_col), board)[0]:
+                result.append((next_row, next_col))
+
+        return result

@@ -29,3 +29,18 @@ class Knight(Piece):
         if abs(row - king_row) + abs(col - king_col) == 3 and 0 < abs(row - king_row) < 3:
             return True 
         return False
+
+    def get_all_moves(
+        self, board: BoardField, whose_move: PieceColor|None = None) -> list[tuple[int, int]]:
+        result = []
+        if whose_move and whose_move != self.color:
+            return []
+
+        row, col = translate(self.position)
+        for i in [1, 2, -1, -2]:
+            for j in [3 - abs(i), -3 + abs(i)]:
+                next_row, next_col = row + i, col + j
+                if self.can_move((next_row, next_col), board)[0]:
+                    result.append((next_row, next_col))
+
+        return result

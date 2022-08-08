@@ -61,6 +61,12 @@ class BoardField:
             self.kings[piece.color] = piece
         self.pieces.add(piece)
         self.board[row][col] = piece
+    
+    def exist(self, item: Coords):
+        row, col = translate(item)
+        if row < 0 or row > 7 or col < 0 or col > 7:
+            return False
+        return True
 
     def clear(self):
         self.board: list[list[Optional['Piece']]] = [
@@ -101,17 +107,19 @@ class BoardField:
         row_end, col_end = translate(end)
 
         log.info(f"Moving from {row_start}:{col_start} to {row_end}:{col_end}")
-
-        if self.board[row_end][col_end]:
-            self.pieces.remove(self.board[row_end][col_end])
+        piece = self.board[row_start][col_start]
+        if enemy_piece:=self.board[row_end][col_end]:
+            self.pieces.remove(enemy_piece)
+            if self.under_check[piece.color] == enemy_piece:
+                self.under_check[piece.color] = None
         
-        self.board[row_end][col_end] = self.board[row_start][col_start]
+        self.board[row_end][col_end] = piece
         self.board[row_start][col_start] = None
-        self.board[row_end][col_end].position = (row_end, col_end)
-        self.board[row_end][col_end].when_moved.append(move_counter)
+        piece.position = (row_end, col_end)
+        piece.when_moved.append(move_counter)
         self.move_counter = move_counter #TODO
-        if self.board[row_end][col_end].enemy_king_under_check():
-            self.under_check[(self.board[row_end][col_end].color + 2)%2] = self.board[row_end][col_end].color
+        if piece.enemy_king_under_check(self):
+            self.under_check[(piece.color + 1)%2] = piece
 
     def promote(self, position: Coords, new_piece: 'Piece'):
         row, col = translate(position)
@@ -162,6 +170,9 @@ class Piece:
             end: str | tuple[int, int],
             board: BoardField
     ) -> tuple[bool, str]:
+        
+        if not board.exist(end):
+            return False, f"No field {end}"
         if board[end] and board[end].color == self.color:
             return False, "Cannot take own piece"
 
@@ -197,11 +208,11 @@ class Piece:
         row, col = translate(self.position)
         next_row, next_col = translate(next_position)
         king_row, king_col = translate(board.kings[self.color].position)
-
         if (enemy_piece := board.under_check[self.color]):
             enemy_row, enemy_col = translate(enemy_piece.position)
             
-            if enemy_piece.type in [PieceType.BISHOP, PieceType.QUEEN]:
+            # if enemy_piece.type in [PieceType.BISHOP, PieceType.QUEEN]:
+            if abs(enemy_row - king_row) == abs(enemy_col - king_col):
                 if abs(next_row - king_row) == abs(next_col - king_col):
                     if (
                         not (
@@ -212,7 +223,8 @@ class Piece:
                 else:
                     return False
             
-            if enemy_piece.type in [PieceType.QUEEN, PieceType.ROOK]:
+            # if enemy_piece.type in [PieceType.QUEEN, PieceType.ROOK]:
+            if enemy_col == king_col or enemy_row == king_row:
                 if enemy_row == king_row:
                     if next_row != enemy_row:
                         return False
@@ -247,7 +259,7 @@ class Piece:
                         return (
                             board[(row, i)].type not in [PieceType.QUEEN, PieceType.ROOK] 
                             or board[(row, i)].color == self.color)
-        if col == king_row and next_col != col and not board.is_between(self.position, board.kings[self.color].position):
+        if col == king_col and next_col != col and not board.is_between(self.position, board.kings[self.color].position):
             if row > king_row:
                 for i in range(row+1, 8):
                     if board[(i, col)]:
