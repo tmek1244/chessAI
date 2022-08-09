@@ -1,28 +1,50 @@
-from typing import NewType, Optional, Union
-from enum import Enum, IntEnum
-
 import logging
+from enum import Enum, IntEnum
+from typing import NewType, Optional, Union
+
 log = logging.getLogger(__name__)
 
-Coords = NewType("Coords", Union[str, tuple[int, int]])
 
+class Coords:
+    row: int
+    col: int
 
-def translate(key: Coords) -> tuple[int, int]:
-    mapping = {
-        'a': 0,
-        'b': 1,
-        'c': 2,
-        'd': 3,
-        'e': 4,
-        'f': 5,
-        'g': 6,
-        'h': 7
-    }
+    def __init__(self, coords: str | tuple[int, int]) -> None:
+        self._set(coords)
 
-    if isinstance(key, tuple):
-        return key[0], key[1]
-    if isinstance(key, str):
-        return int(key[1]) - 1, mapping[key[0]]
+    def _set(self, key: str | tuple[int, int]) -> None:
+        mapping = {
+            'a': 0,
+            'b': 1,
+            'c': 2,
+            'd': 3,
+            'e': 4,
+            'f': 5,
+            'g': 6,
+            'h': 7
+        }
+
+        if isinstance(key, tuple):
+            self.row = key[0]
+            self.col = key[1]
+        if isinstance(key, str):
+            return int(key[1]) - 1, mapping[key[0]]
+    
+    def is_correct(self) -> bool:
+        return 0 <= self.row < 8 and 0 <= self.col < 8
+    
+    def diagonal(self, other: 'Coords') -> bool:
+        return abs(self.row - other.row) == abs(self.col - other.col)
+    
+    def in_line(self, other: 'Coords') -> bool:
+        return self.row == other.row or self.col == other.col
+    
+    def same_row(self, other: 'Coords') -> bool:
+        return self.row == other.row
+    
+    def same_col(self, other: 'Coords') -> bool:
+        return self.col == other.col
+        
 
 
 class PieceType(Enum):
@@ -49,24 +71,21 @@ class BoardField:
         self.kings: list[Optional('Piece')] = [None, None]
         self.under_check: list[Optional('Piece')] = [None, None]
 
-    def __getitem__(self, item: Coords) -> Optional['Piece']:
-        row, col = translate(item)
-        if row < 0 or row > 7 or col < 0 or col > 7:
-            return None
-        return self.board[row][col]
+    def __getitem__(self, item: Coords | tuple[int, int] | str) -> Optional['Piece']:        
+        if not isinstance(item, Coords):
+            item = Coords(item)
+        return self.board[item.row][item.col] if item.is_correct() else None
 
     def __setitem__(self, key: Coords, piece: 'Piece') -> None:
-        row, col = translate(key)
+        if not isinstance(key, Coords):
+            key = Coords(key)
+        
+        if not key.is_correct():
+            return
         if piece.type == PieceType.KING:
             self.kings[piece.color] = piece
         self.pieces.add(piece)
-        self.board[row][col] = piece
-    
-    def exist(self, item: Coords):
-        row, col = translate(item)
-        if row < 0 or row > 7 or col < 0 or col > 7:
-            return False
-        return True
+        self.board[key.row][key.col] = piece
 
     def clear(self):
         self.board: list[list[Optional['Piece']]] = [
@@ -74,64 +93,55 @@ class BoardField:
         ]
 
     def is_between(self, start: Coords, end: Coords):
-        row_start, col_start = translate(start)
-        row_end, col_end = translate(end)
-        if row_start == row_end:
-            min_col, max_col = min(col_start, col_end), max(col_start, col_end)
+        if start.same_row(end):
+            min_col, max_col = min(start.col, end.col), max(start.col, end.col)
             for i in range(min_col + 1, max_col):
-                if self.board[row_start][i]:
+                if self.board[start.row][i]:
                     return True
             return False
-        if col_start == col_end:
-            min_row, max_row = min(row_start, row_end), max(row_start, row_end)
+        if start.same_col(end):
+            min_row, max_row = min(start.row, end.row), max(start.row, end.row)
             for i in range(min_row + 1, max_row):
-                if self.board[i][col_start]:
+                if self.board[i][start.col]:
                     return True
             return False
-        if abs(row_start - row_end) == abs(col_start - col_end):
-            min_row = min(row_start, row_end)
-            if row_end == min_row:
-                row_start, row_end = row_end, row_start
-                col_start, col_end = col_end, col_start
+        if start.diagonal(end):
+            min_row = min(start.row, end.row)
+            if end.row == min_row:
+                start.row, end.row = end.row, start.row
+                start.col, end.col = end.col, start.col
 
-            for i in range(1, abs(row_start - row_end)):
-                if (col_start < col_end
-                        and self.board[row_start + i][col_start + i]):
+            for i in range(1, abs(start.row - end.row)):
+                if (start.col < end.col
+                        and self.board[start.row + i][start.col + i]):
                     return True
-                elif (col_start > col_end
-                      and self.board[row_start + i][col_start - i]):
+                elif (start.col > end.col
+                      and self.board[start.row + i][start.col - i]):
                     return True
 
     def move(self, start: Coords, end: Coords, move_counter: int):
-        row_start, col_start = translate(start)
-        row_end, col_end = translate(end)
-
-        log.info(f"Moving from {row_start}:{col_start} to {row_end}:{col_end}")
-        piece = self.board[row_start][col_start]
-        if enemy_piece:=self.board[row_end][col_end]:
-            self.pieces.remove(enemy_piece)
-            if self.under_check[piece.color] == enemy_piece:
+        log.info(f"Moving from {start.row}:{start.col} to {end.row}:{end.col}")
+        piece = self.board[start.row][start.col]
+        if enemy:=self.board[end.row][end.col] is not None:
+            self.pieces.remove(enemy)
+            if self.under_check[piece.color] == enemy:
                 self.under_check[piece.color] = None
         
-        self.board[row_end][col_end] = piece
-        self.board[row_start][col_start] = None
-        piece.position = (row_end, col_end)
+        self.board[end.row][end.col] = piece
+        self.board[start.row][start.col] = None
+        piece.position = (end.row, end.col)
         piece.when_moved.append(move_counter)
         self.move_counter = move_counter #TODO
         if piece.enemy_king_under_check(self):
             self.under_check[(piece.color + 1)%2] = piece
 
     def promote(self, position: Coords, new_piece: 'Piece'):
-        row, col = translate(position)
-        self.board[row][col] = new_piece
+        self.board[position.row][position.col] = new_piece
 
     def en_passant(self, start: Coords, end: Coords, move_counter: int):
-        row_start, _ = translate(start)
-        _, col_end = translate(end)
-
         self.move(start, end, move_counter)
-        self.pieces.remove(self.board[row_start][col_end])
-        self.board[row_start][col_end] = None
+        self.pieces.remove(self.board[start.row][end.col])
+        self.board[start.row][end.col] = None
 
 
 class Piece:
@@ -139,8 +149,8 @@ class Piece:
             self,
             piece_type: PieceType,
             piece_color: PieceColor,
-            position: str | tuple[int, int]
-    ):
+            position: Coords
+    ) -> None:
         self.type = piece_type
         self.color = piece_color
         self.position = position
@@ -148,30 +158,18 @@ class Piece:
 
     def __str__(self):
         return f"{self.type}:{self.color} [{self.position}]"
-        # match self.type:
-        #     case PieceType.PAWN:
-        #         return "P"
-        #     case PieceType.ROOK:
-        #         return "R"
-        #     case PieceType.KNIGHT:
-        #         return "N"
-        #     case PieceType.BISHOP:
-        #         return "B"
-        #     case PieceType.QUEEN:
-        #         return "Q"
-        #     case PieceType.KING:
-        #         return "K"
 
     def __repr__(self):
         return self.__str__()
 
     def can_move(
             self,
-            end: str | tuple[int, int],
+            end: Coords,
             board: BoardField
     ) -> tuple[bool, str]:
-        
-        if not board.exist(end):
+        if not isinstance(end, Coords):
+            end = Coords(end)
+        if not end.is_correct():
             return False, f"No field {end}"
         if board[end] and board[end].color == self.color:
             return False, "Cannot take own piece"
@@ -197,94 +195,85 @@ class Piece:
                 if can_move:
                     result.append((i, j))
         return result
-    
-    # def king_not_under_check(self, next_position, board: BoardField):
-    #     resutl = self._king_not_under_check(next_position, board)
-    #     if resutl == False:
-    #         print(self.position, next_position, self.type)
-    #     return resutl
 
-    def king_not_under_check(self, next_position, board: BoardField):
-        row, col = translate(self.position)
-        next_row, next_col = translate(next_position)
-        king_row, king_col = translate(board.kings[self.color].position)
-        if (enemy_piece := board.under_check[self.color]):
-            enemy_row, enemy_col = translate(enemy_piece.position)
-            
-            # if enemy_piece.type in [PieceType.BISHOP, PieceType.QUEEN]:
-            if abs(enemy_row - king_row) == abs(enemy_col - king_col):
-                if abs(next_row - king_row) == abs(next_col - king_col):
+    def king_not_under_check(self, next_position: Coords, board: BoardField) -> bool:
+        king = board.kings[self.color].position
+        if (enemy := board.under_check[self.color]):            
+            if enemy.diagonal(king):
+                if next_position.diagonal(king):
                     if (
                         not (
-                            (enemy_row >= next_row > king_row or enemy_row <= next_row < king_row) and 
-                            (enemy_col >= next_col > king_col or enemy_col <= next_col < king_col))
+                            (enemy.position.row >= next_position.row > king.row or 
+                            enemy.position.row <= next_position.row < king.row) and 
+                            (enemy.position.col >= next_position.col > king.col or 
+                            enemy.position.col <= next_position.col < king.col))
                         ):
                         return False
                 else:
                     return False
             
-            # if enemy_piece.type in [PieceType.QUEEN, PieceType.ROOK]:
-            if enemy_col == king_col or enemy_row == king_row:
-                if enemy_row == king_row:
-                    if next_row != enemy_row:
+            # if enemy.type in [PieceType.QUEEN, PieceType.ROOK]:
+            if enemy.position.col == king.col or enemy.position.row == king.row:
+                if enemy.position.row == king.row:
+                    if next_position.row != enemy.position.row:
                         return False
-                    if not (enemy_col >= next_col > king_col or enemy_col <= next_col < king_col):
+                    if not (enemy.position.col >= next_position.col > king.col or enemy.position.col <= next_position.col < king.col):
                         return False
-                elif enemy_col == king_col:
-                    if next_col != enemy_col:
+                elif enemy.position.col == king.col:
+                    if next_position.col != enemy.position.col:
                         return False
-                    if not (enemy_row >= next_row > king_row or enemy_row <= next_row < king_row):
+                    if not (enemy.position.row >= next_position.row > king.row or enemy.position.row <= next_position.row < king.row):
                         return False
                 else:
                     return False
             
-            if enemy_piece.type in [PieceType.PAWN, PieceType.KNIGHT]:
-                if (enemy_row, enemy_col) != (next_row, next_col):
+            if enemy.type in [PieceType.PAWN, PieceType.KNIGHT]:
+                if (enemy.position.row, enemy.position.col) != (next_position.row, next_position.col):
                     return False
 
 
-        if row != king_row and col != king_col and abs(row - king_row) != abs(col - king_col):
+        if not self.position.same_row(king) and not self.position.same_col(king) and not self.position.diagonal(king):
             return True
 
-        if row == king_row and next_row != row and not board.is_between(self.position, board.kings[self.color].position):
-            if col > king_col:
-                for i in range(col+1, 8):
-                    if board[(row, i)]:
+        if self.position.same_row(king) and not next_position.same_row(self.position) and not board.is_between(self.position, board.kings[self.color].position):
+            if self.position.same_col(king):
+                for i in range(self.position.col+1, 8):
+                    if piece:=board[(self.position.row, i)]:
                         return (
-                            board[(row, i)].type not in [PieceType.QUEEN, PieceType.ROOK] 
-                            or board[(row, i)].color == self.color)
+                            piece.type not in [PieceType.QUEEN, PieceType.ROOK] 
+                            or piece.color == self.color)
             else:
-                for i in range(col-1, 0, -1):
-                    if board[(row, i)]:
+                for i in range(self.position.col-1, 0, -1):
+                    if piece:=board[(self.position.row, i)]:
                         return (
-                            board[(row, i)].type not in [PieceType.QUEEN, PieceType.ROOK] 
-                            or board[(row, i)].color == self.color)
-        if col == king_col and next_col != col and not board.is_between(self.position, board.kings[self.color].position):
-            if row > king_row:
-                for i in range(row+1, 8):
-                    if board[(i, col)]:
+                            piece.type not in [PieceType.QUEEN, PieceType.ROOK] 
+                            or piece.color == self.color)
+        if self.position.same_col(king) and next_position.same_col(self.position) and not board.is_between(self.position, board.kings[self.color].position):
+            if self.position.row > king.row:
+                for i in range(self.position.row+1, 8):
+                    if piece:=board[(i, self.position.col)]:
                         return (
-                            board[(i, col)].type not in [PieceType.QUEEN, PieceType.ROOK] 
-                            or board[(i, col)].color == self.color)
+                            piece.type not in [PieceType.QUEEN, PieceType.ROOK] 
+                            or piece.color == self.color)
             else:
-                for i in range(row-1, 0, -1):
-                    if board[(i, col)]:
+                for i in range(self.position.row-1, 0, -1):
+                    if piece:=board[(i, self.position.col)]:
                         return (
-                            board[(i, col)].type not in [PieceType.QUEEN, PieceType.ROOK] 
-                            or board[(i, col)].color == self.color)
+                            piece.type not in [PieceType.QUEEN, PieceType.ROOK] 
+                            or piece.color == self.color)
         
-        if abs(row - king_row) == abs(col - king_col) and not board.is_between(self.position, board.kings[self.color].position):
-            if abs(row - next_row) == abs(col - next_col) and abs(next_row - king_row) == abs(next_col - king_col):
+        if self.position.diagonal(king) and not board.is_between(self.position, board.kings[self.color].position):
+            if self.position.diagonal(next_position) and next_position.diagonal(king):
                 return True
-            row_inc = 1 if row > king_row else -1
-            col_inc = 1 if col > king_col else -1
+            row_inc = 1 if self.position.row > king.row else -1
+            col_inc = 1 if self.position.col > king.col else -1
 
-            row_it, col_it = row + row_inc, col + col_inc
+            row_it, col_it = self.position.row + row_inc, self.position.col + col_inc
             while row_it > -1 and row_it < 8 and col_it > -1 and col_it < 8:
-                if board[(row_it, col_it)]:
+                if piece:=board[(row_it, col_it)]:
                     return (
-                        board[(row_it, col_it)].type not in [PieceType.QUEEN, PieceType.BISHOP] 
-                        or board[(row_it, col_it)].color == self.color)
+                        piece.type not in [PieceType.QUEEN, PieceType.BISHOP] 
+                        or piece.color == self.color)
 
                 row_it += row_inc
                 col_it += col_inc

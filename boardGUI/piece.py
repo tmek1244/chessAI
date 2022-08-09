@@ -1,8 +1,9 @@
 import os
-import pygame
 from enum import Enum
 
-from chessEngine.common import PieceType, PieceColor
+import pygame
+
+from chessEngine.common import PieceColor, PieceType
 
 
 class PieceGUI(pygame.sprite.Sprite):

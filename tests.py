@@ -1,4 +1,5 @@
 from copy import deepcopy
+
 from chessEngine.chessEngine import Board
 from chessEngine.common import PieceColor, PieceType
 

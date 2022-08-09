@@ -1,8 +1,8 @@
 import pygame
 
+from boardGUI.gui import BoardGui
 from boardGUI.piece import PieceGUI
 from chessEngine.chessEngine import Board
-from boardGUI.gui import BoardGui
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800

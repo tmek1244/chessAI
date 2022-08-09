@@ -1,6 +1,8 @@
-from chessEngine.common import translate, Coords, Piece, PieceType, PieceColor, BoardField
-
 import logging
+
+from chessEngine.common import (BoardField, Coords, Piece, PieceColor,
+                                PieceType)
+
 log = logging.getLogger(__name__)
 
 
@@ -13,82 +15,82 @@ class Pawn(Piece):
         info = ""
         # if not super().can_move(end, board):
         #     return False, info
-        row_start, col_start = translate(self.position)
-        row_dest, col_dest = translate(end)
+        # row_start, col_start = translate(self.position)
+        # row_dest, col_dest = translate(end)
 
         # log.debug(f"{row_start}, {col_start}, {row_dest}, {col_dest}")
-        if self._will_promote(row_dest):
+        if self._will_promote(end.row):
             info = "promote"
         # move by one
-        if self._move_by_one(row_start, col_start, row_dest, col_dest):
+        if self._move_by_one(self.position, end):
             return (board[end] is None and self.king_not_under_check(end, board)), info
         # move by two
-        if self._move_by_two(row_start, col_start, row_dest, col_dest):
+        if self._move_by_two(self.position, end):
             return (not board.is_between(self.position, end)
                     and board[end] is None and self.king_not_under_check(end, board)), info
 
         # take
-        if self._take(row_start, col_start, row_dest, col_dest):
+        if self._take(self.position, end):
             # normal take
             if board[end]:
                 return self.king_not_under_check(end, board), info
             # en passant
-            if self._en_passant(row_start, col_dest, board):
+            if self._en_passant(Coords(self.position.row, end.col), board):
                 return self.king_not_under_check(end, board), "en_passant"
             return False
 
         return False
     
-    def _will_promote(self, row_dest):
+    def _will_promote(self, row_dest: int) -> bool:
         return (
             (self.color == PieceColor.WHITE and row_dest == 7) or
             (self.color == PieceColor.BLACK and row_dest == 0)
         )
 
-    def _move_by_one(self, row_start, col_start, row_dest, col_dest):
+    def _move_by_one(self, start: Coords, end: Coords) -> bool:
         return (
-            col_start == col_dest and
-            (row_start + 1 == row_dest 
+            start.col == end.col and
+            (start.row + 1 == end.row 
             if self.color == PieceColor.WHITE 
-            else row_start - 1 == row_dest)
+            else start.row - 1 == end.row)
         )
     
-    def _move_by_two(self, row_start, col_start, row_dest, col_dest):
+    def _move_by_two(self, start: Coords, end: Coords) -> bool:
         return (
-            col_start == col_dest and
-            (row_start == 1 if self.color == PieceColor.WHITE else row_start == 6) and
-            (row_dest == 3 if self.color == PieceColor.WHITE else row_dest == 4)
+            start.col == end.col and
+            (start.row == 1 if self.color == PieceColor.WHITE else start.row == 6) and
+            (end.row == 3 if self.color == PieceColor.WHITE else end.row == 4)
         )
     
-    def _take(self, row_start, col_start, row_dest, col_dest):
+    def _take(self, start: Coords, end: Coords) -> bool:
         return (
-            (abs(col_dest - col_start) == 1) and
-            (row_start + 1 == row_dest 
+            (abs(end.col - start.col) == 1) and
+            (start.row + 1 == end.row 
             if self.color == PieceColor.WHITE 
-            else row_start - 1 == row_dest)
+            else start.row - 1 == end.row)
         )
 
-    def _en_passant(self, row_start, col_dest, board: BoardField):
+    def _en_passant(self, coords: Coords, board: BoardField) -> bool:
         return (
-            (board[row_start, col_dest]) and
-            (board[row_start, col_dest].type == PieceType.PAWN) and
-            (board[row_start, col_dest].color != self.color) and
-            (row_start == 4 if self.color == PieceColor.WHITE else row_start == 3) and 
-            (board[row_start, col_dest].when_moved[-1] == board.move_counter) and
-            (len(board[row_start, col_dest].when_moved) == 1)
+            (board[coords]) and
+            (board[coords].type == PieceType.PAWN) and
+            (board[coords].color != self.color) and
+            (coords.row == 4 if self.color == PieceColor.WHITE else coords.row == 3) and 
+            (board[coords].when_moved[-1] == board.move_counter) and
+            (len(board[coords].when_moved) == 1)
         )
 
-    def enemy_king_under_check(self, board: BoardField, position = None):
+    def enemy_king_under_check(self, board: BoardField, position = None) -> bool:
         if position is None:
             position = self.position
         
-        row, col = translate(position)
-        enemy_king = board.kings[(self.color+1)%2]
-        king_row, king_col = translate(enemy_king.position)
+        # row, col = translate(position)
+        enemy_king = board.kings[(self.color+1)%2].position
+        # king_row, king_col = translate(enemy_king.position)
 
         if (
-            abs(col - king_col) == 1 and 
-            (king_row + 1 == row if self.color == PieceColor.WHITE else king_row - 1 == row)):
+            abs(position.col - enemy_king.col) == 1 and 
+            (enemy_king.row + 1 == position.row if self.color == PieceColor.WHITE else enemy_king.row - 1 == position.row)):
             return True
         return False
 
@@ -98,11 +100,10 @@ class Pawn(Piece):
         if whose_move and whose_move != self.color:
             return []
 
-        row, col = translate(self.position)
         for i, j in [(1, 0), (1, 1), (1, -1), (2, 0)]:
             if self.color == PieceColor.BLACK:
                 i, j = i * -1, j * -1
-            next_row, next_col = row + i, col + j
+            next_row, next_col = self.position.row + i, self.position.col + j
             if self.can_move((next_row, next_col), board)[0]:
                 result.append((next_row, next_col))
 

@@ -1,38 +1,45 @@
-from chessEngine.common import translate, Coords, Piece, PieceType, PieceColor, BoardField
+from chessEngine.common import (BoardField, Coords, Piece, PieceColor,
+                                PieceType)
 
 
 class Queen(Piece):
-    def __init__(self, color, position):
+    def __init__(self, color: PieceColor, position: Coords) -> None:
         super().__init__(PieceType.QUEEN, color, position)
 
-    def _can_move(self, end, board: BoardField):
-        # if not super().can_move(end, board):
-        #     return False
-        row_start, col_start = translate(self.position)
-        row_dest, col_dest = translate(end)
+    def _can_move(self, end, board: BoardField) -> bool:
+        # row_start, col_start = translate(self.position)
+        # row_dest, col_dest = translate(end)
         
         # move or take
-        if (row_start == row_dest or
-                col_start == col_dest or
-                abs(row_start - row_dest) == abs(col_start - col_dest)):
+        if (self.position.row == end.row or
+                self.position.col == end.col or
+                self.position.diagonal(end)):
             return not board.is_between(self.position, end) and self.king_not_under_check(end, board)
         return False
     
-    def enemy_king_under_check(self, board: BoardField, position = None):
+    def enemy_king_under_check(self, board: BoardField, position: Coords = None) -> bool:
         if position is None:
             position = self.position
         
-        row, col = translate(position)
+        # row, col = translate(position)
         enemy_king = board.kings[(self.color+1)%2]
-        king_row, king_col = translate(enemy_king.position)
+        # king_row, king_col = translate(enemy_king.position)
 
-        if row != king_row and col != king_col and abs(row - king_row) != abs(col - king_col):
-            return False
-        if row == king_row and not board.is_between(position, enemy_king.position):
-            return True
-        if col == king_col and not board.is_between(position, enemy_king.position):
-            return True
-        if abs(row - king_row) == abs(col - king_col) and not board.is_between(position, enemy_king.position):
+        # if row != king_row and col != king_col and abs(row - king_row) != abs(col - king_col):
+        #     return False
+        # if row == king_row and not board.is_between(position, enemy_king.position):
+        #     return True
+        # if col == king_col and not board.is_between(position, enemy_king.position):
+        #     return True
+        # if abs(row - king_row) == abs(col - king_col) and not board.is_between(position, enemy_king.position):
+        #     return True
+        if (
+            (
+                position.diagonal(enemy_king) or 
+                position.same_col(enemy_king) or 
+                position.same_row(enemy_king)
+            ) and not board.is_between(position, enemy_king)
+        ):
             return True
         return False
 
@@ -42,14 +49,11 @@ class Queen(Piece):
         if whose_move and whose_move != self.color:
             return []
 
-        row, col = translate(self.position)
-        for i, j in [(1, 0), (0, 1), (-1, 0), (0, -1)]:
-            next_row, next_col = row + i, col + j
-            while self.can_move((next_row, next_col), board)[0]:
-                result.append((next_row, next_col))
-                next_row, next_col = next_row + i, next_col + j
-        for i, j in [(1, 1), (1, -1), (-1, 1), (-1, -1)]:
-            next_row, next_col = row + i, col + j
+        for i, j in [
+            (1, 0), (0, 1), (-1, 0), (0, -1),
+            (1, 1), (1, -1), (-1, 1), (-1, -1)
+            ]:
+            next_row, next_col = self.position.row + i, self.position.col + j
             while self.can_move((next_row, next_col), board)[0]:
                 result.append((next_row, next_col))
                 next_row, next_col = next_row + i, next_col + j

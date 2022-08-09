@@ -1,8 +1,9 @@
-from copy import deepcopy
-from chessEngine.common import translate, Coords, BoardField, PieceType, PieceColor
-from chessEngine.pieces.pieces import create_piece
-
 import logging
+from copy import deepcopy
+
+from chessEngine.common import (BoardField, Coords, PieceColor, PieceType,
+                                )
+from chessEngine.pieces.pieces import create_piece
 
 log = logging.getLogger(__name__)
 logging.getLogger().setLevel(logging.DEBUG)
@@ -49,12 +50,13 @@ class Board:
             start: Coords,
             destination: Coords,
             next_piece: PieceType = None):
+        if not isinstance(start, Coords):
+            start = Coords(start)
+        if not isinstance(destination, Coords):
+            destination = Coords(destination)
         piece = self.board[start]
         if not piece:
             return 1
-
-        row_start, col_start = translate(start)
-        row_dest, col_dest = translate(destination)
 
         if piece.color != self.next_move:
             # log.error(f"It's now a {self.next_move} move")
@@ -79,10 +81,10 @@ class Board:
         # if self._is_legal(board_copy):
         if info == 'short':
             self.board.move(start, destination, self.move_counter)
-            self.board.move((row_start, 7), (row_start, 5), self.move_counter)
+            self.board.move((start.row, 7), (start.row, 5), self.move_counter)
         elif info == "long":
             self.board.move(start, destination, self.move_counter)
-            self.board.move((row_start, 0), (row_start, 3), self.move_counter)
+            self.board.move((start.row, 0), (start.row, 3), self.move_counter)
         elif info == "en_passant":
             self.board.en_passant(start, destination, self.move_counter)
         else:
