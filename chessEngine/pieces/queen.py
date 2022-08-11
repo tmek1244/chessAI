@@ -1,5 +1,6 @@
 from chessEngine.common import (BoardField, Coords, Piece, PieceColor,
                                 PieceType)
+from typing import cast
 
 
 class Queen(Piece):
@@ -22,7 +23,7 @@ class Queen(Piece):
             position = self.position
         
         # row, col = translate(position)
-        enemy_king = board.kings[(self.color+1)%2]
+        enemy_king = cast(Coords, board.kings[(self.color+1)%2].position)
         # king_row, king_col = translate(enemy_king.position)
 
         # if row != king_row and col != king_col and abs(row - king_row) != abs(col - king_col):
@@ -54,7 +55,7 @@ class Queen(Piece):
             (1, 1), (1, -1), (-1, 1), (-1, -1)
             ]:
             next_row, next_col = self.position.row + i, self.position.col + j
-            while self.can_move((next_row, next_col), board)[0]:
+            while self.can_move(Coords((next_row, next_col)), board)[0]:
                 result.append((next_row, next_col))
                 next_row, next_col = next_row + i, next_col + j
         return result

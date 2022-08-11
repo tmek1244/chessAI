@@ -1,6 +1,6 @@
 import logging
 from enum import Enum, IntEnum
-from typing import NewType, Optional, Union
+from typing import NewType, Optional, Union, cast
 
 log = logging.getLogger(__name__)
 
@@ -28,7 +28,8 @@ class Coords:
             self.row = key[0]
             self.col = key[1]
         if isinstance(key, str):
-            return int(key[1]) - 1, mapping[key[0]]
+            self.row = int(key[1]) - 1
+            self.col = mapping[key[0]]
     
     def is_correct(self) -> bool:
         return 0 <= self.row < 8 and 0 <= self.col < 8
@@ -108,8 +109,7 @@ class BoardField:
         if start.diagonal(end):
             min_row = min(start.row, end.row)
             if end.row == min_row:
-                start.row, end.row = end.row, start.row
-                start.col, end.col = end.col, start.col
+                start, end = Coords((end.row, end.col)), Coords((start.row, start.col))
 
             for i in range(1, abs(start.row - end.row)):
                 if (start.col < end.col
@@ -122,14 +122,15 @@ class BoardField:
     def move(self, start: Coords, end: Coords, move_counter: int):
         log.info(f"Moving from {start.row}:{start.col} to {end.row}:{end.col}")
         piece = self.board[start.row][start.col]
-        if enemy:=self.board[end.row][end.col] is not None:
+        assert piece
+        if enemy:=self.board[end.row][end.col]:
             self.pieces.remove(enemy)
             if self.under_check[piece.color] == enemy:
                 self.under_check[piece.color] = None
         
         self.board[end.row][end.col] = piece
         self.board[start.row][start.col] = None
-        piece.position = (end.row, end.col)
+        piece.position = Coords((end.row, end.col))
         piece.when_moved.append(move_counter)
         self.move_counter = move_counter #TODO
         if piece.enemy_king_under_check(self):
@@ -140,7 +141,9 @@ class BoardField:
 
     def en_passant(self, start: Coords, end: Coords, move_counter: int):
         self.move(start, end, move_counter)
-        self.pieces.remove(self.board[start.row][end.col])
+        enemy_pawn = self.board[start.row][end.col]
+        assert enemy_pawn
+        self.pieces.remove(enemy_pawn)
         self.board[start.row][end.col] = None
 
 
@@ -154,7 +157,7 @@ class Piece:
         self.type = piece_type
         self.color = piece_color
         self.position = position
-        self.when_moved = []
+        self.when_moved: list[int] = []
 
     def __str__(self):
         return f"{self.type}:{self.color} [{self.position}]"
@@ -171,7 +174,7 @@ class Piece:
             end = Coords(end)
         if not end.is_correct():
             return False, f"No field {end}"
-        if board[end] and board[end].color == self.color:
+        if (enemy:=board[end]) and enemy.color == self.color:
             return False, "Cannot take own piece"
 
         output = self._can_move(end, board)
@@ -186,20 +189,14 @@ class Piece:
     
     def get_all_moves(
         self, board: BoardField, whose_move: Optional[PieceColor] = None) -> list[tuple[int, int]]:
-        result = []
-        if whose_move and whose_move != self.color:
-            return []
-        for i in range(8):
-            for j in range(8):
-                can_move, _ = self.can_move((i, j), board)
-                if can_move:
-                    result.append((i, j))
-        return result
+        ...
 
     def king_not_under_check(self, next_position: Coords, board: BoardField) -> bool:
-        king = board.kings[self.color].position
-        if (enemy := board.under_check[self.color]):            
-            if enemy.diagonal(king):
+        king = cast(Coords, board.kings[self.color].position)
+        
+        if (enemy := board.under_check[self.color]):
+            enemy = cast(Piece, enemy)
+            if enemy.position.diagonal(king):
                 if next_position.diagonal(king):
                     if (
                         not (

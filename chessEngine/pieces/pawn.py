@@ -35,7 +35,7 @@ class Pawn(Piece):
             if board[end]:
                 return self.king_not_under_check(end, board), info
             # en passant
-            if self._en_passant(Coords(self.position.row, end.col), board):
+            if self._en_passant(Coords((self.position.row, end.col)), board):
                 return self.king_not_under_check(end, board), "en_passant"
             return False
 
@@ -72,12 +72,12 @@ class Pawn(Piece):
 
     def _en_passant(self, coords: Coords, board: BoardField) -> bool:
         return (
-            (board[coords]) and
-            (board[coords].type == PieceType.PAWN) and
-            (board[coords].color != self.color) and
+            ((enemy:=board[coords]) is not None) and
+            (enemy.type == PieceType.PAWN) and
+            (enemy.color != self.color) and
             (coords.row == 4 if self.color == PieceColor.WHITE else coords.row == 3) and 
-            (board[coords].when_moved[-1] == board.move_counter) and
-            (len(board[coords].when_moved) == 1)
+            (enemy.when_moved[-1] == board.move_counter) and
+            (len(enemy.when_moved) == 1)
         )
 
     def enemy_king_under_check(self, board: BoardField, position = None) -> bool:
@@ -104,7 +104,7 @@ class Pawn(Piece):
             if self.color == PieceColor.BLACK:
                 i, j = i * -1, j * -1
             next_row, next_col = self.position.row + i, self.position.col + j
-            if self.can_move((next_row, next_col), board)[0]:
+            if self.can_move(Coords((next_row, next_col)), board)[0]:
                 result.append((next_row, next_col))
 
         return result

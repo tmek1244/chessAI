@@ -5,7 +5,7 @@ from chessEngine.common import PieceColor, PieceType
 
 COUNTER = 0
 def possible_moves_step(engine_board, color, counter):
-    global COUNTER
+    # global COUNTER
     board = engine_board.board
     if counter < 1:
         return 1
@@ -17,11 +17,11 @@ def possible_moves_step(engine_board, color, counter):
         # print(f"{piece}: {piece.get_all_moves(board, color)}")
         # return
         for move in piece.get_all_moves(board, color):
-            COUNTER += 1
+            # COUNTER += 1
             engine = deepcopy(engine_board)
             if engine.make_move(piece.position, move) == 0:
                 sum += possible_moves_step(engine, next_color, counter-1)
-    print(COUNTER)
+    # print(COUNTER)
     
     return sum
     
@@ -33,7 +33,7 @@ def test_possible_moves():
     # for piece in engine_board.board.pieces:
     #     moves += len(piece.get_all_moves(engine_board.board, PieceColor.WHITE))
     
-    print(possible_moves_step(engine_board, PieceColor.WHITE, 3))
+    print(possible_moves_step(engine_board, PieceColor.WHITE, 5))
         
 
 def main():

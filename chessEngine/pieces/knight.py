@@ -35,7 +35,7 @@ class Knight(Piece):
         for i in [1, 2, -1, -2]:
             for j in [3 - abs(i), -3 + abs(i)]:
                 next_row, next_col = self.position.row + i, self.position.col + j
-                if self.can_move((next_row, next_col), board)[0]:
+                if self.can_move(Coords((next_row, next_col)), board)[0]:
                     result.append((next_row, next_col))
 
         return result

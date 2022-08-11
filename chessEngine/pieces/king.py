@@ -37,9 +37,8 @@ class King(Piece):
         return None
             
 
-    def under_check(self, board, position: Coords = None) -> bool:
-        if position == None:
-            position = self.position
+    def under_check(self, board, _position: Coords | None = None) -> bool:
+        position = self.position if _position is None else _position
 
         for direction in [(1, 0), (0, 1), (-1, 0), (0, -1)]:
             piece_n_counter = self._run_trace(position, *direction, board)
@@ -88,25 +87,27 @@ class King(Piece):
             (not board.is_between(self.position, end)) and
             (not self.when_moved) and
             (not self.under_check(board)) and
-            (not self.under_check(board, Coords(end.row, 5))) and
-            (not self.under_check(board, Coords(end.row, 6))) and
+            (not self.under_check(board, Coords((end.row, 5)))) and
+            (not self.under_check(board, Coords((end.row, 6)))) and
             (end.row == 0 if self.color == PieceColor.WHITE else end.row == 7) and
             (end.col == 6) and
-            (board[(end.row, 7)].type == PieceType.ROOK) and
-            (not board[(end.row, 7)].when_moved)
+            ((rook:=board[(end.row, 7)]) is not None) and
+            (rook.type == PieceType.ROOK) and
+            (not rook.when_moved)
         )
 
     def _can_castle_long(self, end: Coords, board: BoardField) -> bool:
         return (
             (not self.when_moved) and
-            (not board.is_between(self.position, (end.row, 0))) and
+            (not board.is_between(self.position, Coords((end.row, 0)))) and
             (not self.under_check(board)) and
-            (not self.under_check(board, (end.row, 3))) and
-            (not self.under_check(board, (end.row, 2))) and
+            (not self.under_check(board, Coords((end.row, 3)))) and
+            (not self.under_check(board, Coords((end.row, 2)))) and
             (end.row == 0 if self.color == PieceColor.WHITE else end.row == 7) and
             (end.col == 2) and
-            (board[(end.row, 0)].type == PieceType.ROOK) and
-            (not board[(end.row, 0)].when_moved)
+            ((rook:=board[(end.row, 0)]) is not None) and
+            (rook.type == PieceType.ROOK) and
+            (not rook.when_moved)
         )
 
     def enemy_king_under_check(self, board: BoardField, position = None) -> bool:
@@ -123,6 +124,6 @@ class King(Piece):
             (1, 1), (1, -1), (-1, 1), (-1, -1)
             ]:
             next_row, next_col = self.position.row + i, self.position.col + j
-            if self.can_move((next_row, next_col), board)[0]:
+            if self.can_move(Coords((next_row, next_col)), board)[0]:
                 result.append((next_row, next_col))
         return result

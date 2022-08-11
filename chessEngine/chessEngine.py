@@ -63,7 +63,7 @@ class Board:
             return 1
 
         can_move, info = piece.can_move(destination, self.board)
-        log.info(info)
+        log.info(f"Returned info: {info}")
         if not can_move:
             return 1
 
@@ -99,13 +99,13 @@ class Board:
         self.move_counter += 1
         return 0
 
-    def _is_legal(self, board: BoardField):
-        for piece in board.pieces:
-            if piece.type == PieceType.KING and piece.color == self.next_move and piece.under_check(board, piece.position):
-                return False
-        return True
+    # def _is_legal(self, board: BoardField):
+    #     for piece in board.pieces:
+    #         if piece.type == PieceType.KING and piece.color == self.next_move and piece.under_check(board, piece.position):
+    #             return False
+    #     return True
 
 
 if __name__ == '__main__':
     board = Board()
-    print(board.make_move('e7', 'a2'))
+    print(board.make_move(Coords('e7'), Coords('a2')))
