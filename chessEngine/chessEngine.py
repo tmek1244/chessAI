@@ -4,6 +4,7 @@ from copy import deepcopy
 from chessEngine.common import (BoardField, Coords, PieceColor, PieceType,
                                 )
 from chessEngine.pieces.pieces import create_piece
+from .AI import Bot
 
 log = logging.getLogger(__name__)
 logging.getLogger().setLevel(logging.DEBUG)
@@ -15,6 +16,7 @@ class Board:
         self.history = []
         self.next_move = PieceColor.WHITE
         self.move_counter = 0
+        self.bot = Bot()
 
         if not empty:
             self.reset()
@@ -97,7 +99,26 @@ class Board:
                 else PieceColor.WHITE
             )
         self.move_counter += 1
+    
+        if self.next_move == PieceColor.BLACK:
+            self.bot_move()    
+        
         return 0
+
+    def bot_move(self):
+        best_move = ((None, None), 100)
+        for piece in self.board.pieces:
+            for move in piece.get_all_moves(self.board, PieceColor.BLACK):
+                # COUNTER += 1
+                engine = deepcopy(self)
+                if engine.make_move(piece.position, move) == 0:
+                    if (evalutaion:=self.bot.evaluate(engine.board.to_array())) < best_move[1]:
+                        best_move = ((piece.position, move), evalutaion)
+                    print(f"move {piece.position} -> {move} with eval {evalutaion}")
+                    
+        print(f"Best move {best_move[0][0]} -> {best_move[0][1]} with eval {best_move[1]}")
+        self.make_move(*best_move[0])
+                    
 
     # def _is_legal(self, board: BoardField):
     #     for piece in board.pieces:
