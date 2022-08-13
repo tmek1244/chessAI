@@ -1,14 +1,15 @@
-import pygame
-
 import logging
+
+import pygame
 
 # logging.getLogger().setLevel(logging.DEBUG)
 logging.basicConfig(level = logging.DEBUG)
 log = logging.getLogger(__name__)
 
 
-from .piece import PieceGUI
 from chessEngine.chessEngine import Board
+
+from .piece import PieceGUI
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800
@@ -21,7 +22,7 @@ class BoardGui:
         self.engine_board: Board = engine_board
         self.pieces_gui: PieceGUI = pieces_gui
         self.piece_pressed = None
-        self.possible_moves = []
+        self.possible_moves: list[tuple[int, int]] = []
 
     def run(self):
         while self.running:
@@ -55,8 +56,8 @@ class BoardGui:
             # height - rows
             # width - colums, but they have to be inverted
             self.screen.blit(piece_image, (
-                SCREEN_HEIGHT//8*(piece.position[1]) + (SCREEN_HEIGHT//8 - piece_image.get_height())//2,
-                SCREEN_WIDTH//8*(7 - piece.position[0]) + (SCREEN_WIDTH//8 - piece_image.get_width())//2, 
+                SCREEN_HEIGHT//8*(piece.position.col) + (SCREEN_HEIGHT//8 - piece_image.get_height())//2,
+                SCREEN_WIDTH//8*(7 - piece.position.row) + (SCREEN_WIDTH//8 - piece_image.get_width())//2, 
                 ))
         
         ev = pygame.event.get()
@@ -71,10 +72,10 @@ class BoardGui:
                 col, row = pos[0]//(SCREEN_WIDTH//8), (7 - pos[1]//(SCREEN_HEIGHT//8))
                 log.debug(f"{col}, {row}")
                 for piece in self.engine_board.board.pieces:
-                    if piece.position[0] == row and piece.position[1] == col:
+                    if piece.position.row == row and piece.position.col == col:
                         log.debug(f"Piece {piece.type} {piece.color} pressed")
                         self.piece_pressed = piece
-
+                        # print(self.engine_board.next_move)
                         self.possible_moves = piece.get_all_moves(
                             self.engine_board.board, self.engine_board.next_move)
                         log.info(f"Possible moves: {self.possible_moves}")
