@@ -54,7 +54,7 @@ class MCTS():
         probs = [x / counts_sum for x in counts]    
         return probs
 
-    def search(self, canonicalBoard):
+    def search(self, canonicalBoard, counter=20):
         """
         This function performs one iteration of MCTS. It is recursively called
         till a leaf node is found. The action chosen at each node is one that
@@ -108,23 +108,26 @@ class MCTS():
         best_act = -1
 
         # pick the action with the highest upper confidence bound
-        for a in range(self.game.getActionSize()):
-            if valids[a]:
-                if (s, a) in self.Qsa:
-                    u = self.Qsa[(s, a)] + self.args.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s]) / (
-                            1 + self.Nsa[(s, a)])
-                else:
-                    u = self.args.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s] + EPS)  # Q = 0 ?
+        for a in np.nonzero(valids)[0]:
+            if (s, a) in self.Qsa:
+                u = self.Qsa[(s, a)] + self.args.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s]) / (
+                        1 + self.Nsa[(s, a)])
+            else:
+                u = self.args.cpuct * self.Ps[s][a] * math.sqrt(self.Ns[s] + EPS)  # Q = 0 ?
 
-                if u > cur_best:
-                    cur_best = u
-                    best_act = a
+            if u > cur_best:
+                cur_best = u
+                best_act = a
 
         a = best_act
         next_s, next_player = self.game.getNextState(canonicalBoard, 1, a)
         next_s = self.game.getCanonicalForm(next_s, next_player)
 
-        v = self.search(next_s)
+
+        if counter > 0:
+            v = self.search(next_s, counter - 1)
+        else:
+            _, v = self.nnet.predict(canonicalBoard)
 
         if (s, a) in self.Qsa:
             self.Qsa[(s, a)] = (self.Nsa[(s, a)] * self.Qsa[(s, a)] + v) / (self.Nsa[(s, a)] + 1)

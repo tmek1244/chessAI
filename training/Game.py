@@ -40,7 +40,7 @@ class Game():
         """
         return 64*64
 
-    def getNextState(self, board, player, action):
+    def getNextState(self, board, player, action, _print=False):
         """
         Input:
             board: current board
@@ -51,14 +51,23 @@ class Game():
             nextBoard: board after applying action
             nextPlayer: player who plays in the next turn (should be -player)
         """
+        convert = lambda x: x + 8*(7-2*(x//8))
         from_square = action//64
         to_square = action%64
-        if player == chess.BLACK:
-            from_square = 63 - from_square
-            to_square = 63 - to_square
+        # print(board, from_square, to_square)
+
         self.chess_board.set_fen(board)
         
-        move = chess.Move(from_square, to_square)
+        if player == chess.BLACK:
+            from_square = convert(from_square)
+            to_square = convert(to_square)
+
+        if action%64 > 55 and self.chess_board.piece_at(from_square).piece_type == chess.PAWN:
+            promotion = chess.QUEEN
+        else:
+            promotion = None
+
+        move = chess.Move(from_square, to_square, promotion=promotion)
         self.chess_board.push(move) 
         return (self.chess_board.fen(), chess.Color(not player))
 
@@ -73,6 +82,7 @@ class Game():
                         moves that are valid from the current board and player,
                         0 for invalid moves
         """
+        self.chess_board.set_fen(board)
         result = np.zeros(self.getActionSize())
         for move in self.chess_board.legal_moves:
             result[move.from_square*64 + move.to_square] = 1
@@ -96,6 +106,8 @@ class Game():
         outcome = self.chess_board.outcome()
 
         if outcome is None:
+            if self.chess_board._is_halfmoves(50):
+                return 0.05
             return 0
         if outcome.winner is None:
             return 0.05
@@ -123,6 +135,8 @@ class Game():
         
         board_splited = board.split()
         board_splited[0] = board_splited[0].swapcase()[::-1]
+
+        board_splited[0] = '/'.join([line[::-1] for line in board_splited[0].split('/')])
         board_splited[1] = 'w' if board_splited[1] == 'b' else 'b'
         board_splited[2] = board_splited[2].swapcase()
 
