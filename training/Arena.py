@@ -1,6 +1,7 @@
 # https://github.com/suragnair/alpha-zero-general/blob/master/Arena.py
 
 import logging
+import chess
 
 from tqdm import tqdm
 
@@ -24,8 +25,9 @@ class Arena():
         see othello/OthelloPlayers.py for an example. See pit.py for pitting
         human players/other baselines with each other.
         """
-        self.player1 = player1
+        self.player1 = player1 
         self.player2 = player2
+        
         self.game = game
         self.display = display
 
@@ -39,17 +41,18 @@ class Arena():
             or
                 draw result returned from the game that is neither 1, -1, nor 0.
         """
-        players = [self.player2, None, self.player1]
-        curPlayer = 1
+        players = {
+            chess.WHITE: self.player1,
+            chess.BLACK: self.player2
+        }
+        curPlayer = chess.WHITE
         board = self.game.getInitBoard()
         it = 0
         while self.game.getGameEnded(board, curPlayer) == 0:
             it += 1
             if verbose:
-                assert self.display
                 print("Turn ", str(it), "Player ", str(curPlayer))
-                self.display(board)
-            action = players[curPlayer + 1](self.game.getCanonicalForm(board, curPlayer))
+            action = players[curPlayer](self.game.getCanonicalForm(board, curPlayer))
 
             valids = self.game.getValidMoves(self.game.getCanonicalForm(board, curPlayer), 1)
 
@@ -60,9 +63,11 @@ class Arena():
             board, curPlayer = self.game.getNextState(board, curPlayer, action)
         if verbose:
             assert self.display
-            print("Game over: Turn ", str(it), "Result ", str(self.game.getGameEnded(board, 1)))
             self.display(board)
-        return curPlayer * self.game.getGameEnded(board, curPlayer)
+        print("Game over: Turn ", str(it), "Result ", str(self.game.getGameEnded(board, 1)))
+
+        multiplier = 1 if curPlayer == chess.WHITE else -1
+        return multiplier * self.game.getGameEnded(board, curPlayer)
 
     def playGames(self, num, verbose=False):
         """
@@ -74,7 +79,6 @@ class Arena():
             twoWon: games won by player2
             draws:  games won by nobody
         """
-
         num = int(num / 2)
         oneWon = 0
         twoWon = 0

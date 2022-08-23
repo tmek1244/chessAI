@@ -16,7 +16,7 @@ class Game():
     See othello/OthelloGame.py for an example implementation.
     """
     def __init__(self):
-        self.chess_board = chess.Board()
+        pass
 
     def getInitBoard(self):
         """
@@ -55,21 +55,20 @@ class Game():
         from_square = action//64
         to_square = action%64
         # print(board, from_square, to_square)
-
-        self.chess_board.set_fen(board)
+        chess_board = chess.Board(board)
         
         if player == chess.BLACK:
             from_square = convert(from_square)
             to_square = convert(to_square)
 
-        if action%64 > 55 and self.chess_board.piece_at(from_square).piece_type == chess.PAWN:
+        if action%64 > 55 and chess_board.piece_at(from_square).piece_type == chess.PAWN:
             promotion = chess.QUEEN
         else:
             promotion = None
 
         move = chess.Move(from_square, to_square, promotion=promotion)
-        self.chess_board.push(move) 
-        return (self.chess_board.fen(), chess.Color(not player))
+        chess_board.push(move) 
+        return (chess_board.fen(), chess.Color(not player))
 
     def getValidMoves(self, board, player):
         """
@@ -82,9 +81,9 @@ class Game():
                         moves that are valid from the current board and player,
                         0 for invalid moves
         """
-        self.chess_board.set_fen(board)
+        chess_board = chess.Board(board)
         result = np.zeros(self.getActionSize())
-        for move in self.chess_board.legal_moves:
+        for move in chess_board.legal_moves:
             result[move.from_square*64 + move.to_square] = 1
 
         return result
@@ -102,11 +101,11 @@ class Game():
                small non-zero value for draw.
                
         """
-        self.chess_board.set_fen(board)
-        outcome = self.chess_board.outcome()
+        chess_board = chess.Board(board)
+        outcome = chess_board.outcome()
 
         if outcome is None:
-            if self.chess_board._is_halfmoves(50):
+            if chess_board._is_halfmoves(50):
                 return 0.05
             return 0
         if outcome.winner is None:

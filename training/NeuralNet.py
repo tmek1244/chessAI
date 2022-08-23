@@ -47,9 +47,10 @@ class NeuralNet():
                       (board, pi, v). pi is the MCTS informed policy vector for
                       the given board, and v is its value. The examples has
                       board in its canonical form.
-        """
+        """        
         input_boards, target_pis, target_vs = list(zip(*examples))
         input_boards = np.asarray(input_boards)
+        input_boards = np.asarray([self._from_fen_to_array(board) for board in input_boards]).reshape(-1, 12, 8, 8)
         target_pis = np.asarray(target_pis)
         target_vs = np.asarray(target_vs)
         self.model.fit(x = input_boards, y = [target_pis, target_vs], batch_size = 64, epochs = 10)
@@ -64,6 +65,11 @@ class NeuralNet():
                 game.getActionSize
             v: a float in [-1,1] that gives the value of the current board
         """
+        pi, v = self.model.predict(self._from_fen_to_array(board).reshape(-1, 12, 8, 8), verbose=False)
+
+        return pi[0], v[0]
+    
+    def _from_fen_to_array(self, board):
         chess_board = chess.Board(fen=board)
         result = np.zeros((2, 6, 8, 8))
 
@@ -88,35 +94,28 @@ class NeuralNet():
                 elif piece.piece_type == chess.PAWN:
                     piece_id = 5
                 result[color, piece_id, row-1, i] = 1
-        # run
-        pi, v = self.model.predict(result.reshape(-1, 12, 8, 8), verbose=False)
-
-        return pi[0], v[0]
+        return result
 
     def save_checkpoint(self, folder, filename):
         """
         Saves the current neural network (with its parameters) in
         folder/filename
         """
-        filename = filename.split(".")[0] + ".h5"
-
-        filepath = os.path.join(folder, filename)
+        filepath = os.path.join(folder, filename + ".h5")
         if not os.path.exists(folder):
             print("Checkpoint Directory does not exist! Making directory {}".format(folder))
             os.mkdir(folder)
         else:
             print("Checkpoint Directory exists! ")
-        self.nnet.model.save_weights(filepath)
+        self.model.save_weights(filepath)
 
     def load_checkpoint(self, folder, filename):
         """
         Loads parameters of the neural network from folder/filename
         """
-        filename = filename.split(".")[0] + ".h5"
-
         # https://github.com/pytorch/examples/blob/master/imagenet/main.py#L98
-        filepath = os.path.join(folder, filename)
+        filepath = os.path.join(folder, filename + ".h5")
         if not os.path.exists(filepath):
             raise("No model in path {}".format(filepath))
 
-        self.nnet.model.load_weights(filepath)
+        self.model.load_weights(filepath)
