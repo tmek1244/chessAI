@@ -1,5 +1,6 @@
 import logging
 from copy import deepcopy
+import numpy as np
 
 from chessEngine.common import (BoardField, Coords, PieceColor, PieceType,
                                 )
@@ -104,20 +105,37 @@ class Board:
             self.bot_move()    
         
         return 0
+    
+    def try_move(
+            self,
+            start: Coords,
+            destination: Coords,
+            next_piece: PieceType = None):
+        if not isinstance(start, Coords):
+            start = Coords(start)
+        if not isinstance(destination, Coords):
+            destination = Coords(destination)
+        piece = self.board[start]
+        if not piece:
+            return 1
+
+        if piece.color != self.next_move:
+            # log.error(f"It's now a {self.next_move} move")
+            return 1
+
+        can_move, info = piece.can_move(destination, self.board)
+        if not can_move:
+            return 1
+        return 0
 
     def bot_move(self):
-        best_move = ((None, None), 100)
-        for piece in self.board.pieces:
-            for move in piece.get_all_moves(self.board, PieceColor.BLACK):
-                # COUNTER += 1
-                engine = deepcopy(self)
-                if engine.make_move(piece.position, move) == 0:
-                    if (evalutaion:=self.bot.evaluate(engine.board.to_array())) < best_move[1]:
-                        best_move = ((piece.position, move), evalutaion)
-                    print(f"move {piece.position} -> {move} with eval {evalutaion}")
-                    
-        print(f"Best move {best_move[0][0]} -> {best_move[0][1]} with eval {best_move[1]}")
-        self.make_move(*best_move[0])
+        evalutaion = self.bot.evaluate(self.board.to_array())
+        for i, idx in enumerate(np.argsort(evalutaion)):
+            from_square = idx//64
+            to_square = idx%64
+            if self.try_move(Coords((from_square//8, from_square%8)), Coords((to_square//8, to_square%8))) == 0:
+                print(f"Best move {from_square} -> {to_square}, after {i} tries")
+                return self.make_move(Coords((from_square//8, from_square%8)), Coords((to_square//8, to_square%8)))
                     
 
     # def _is_legal(self, board: BoardField):

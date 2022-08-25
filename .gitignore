@@ -1,3 +1,6 @@
 .idea
 venv/
 __pycache__/
+model_0.1/
+temp/
+.ipynb_checkpoints/

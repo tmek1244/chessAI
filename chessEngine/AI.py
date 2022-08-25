@@ -3,15 +3,17 @@ os.environ["CUDA_VISIBLE_DEVICES"]="-1"
 import tensorflow as tf
 
 import numpy as np
+import chess
 
 class Bot:
     def __init__(self) -> None:
         with tf.device('/cpu:0'):
-            self.model = tf.keras.models.load_model('notebooks/models/test_model')
+            self.model = tf.keras.models.load_model('chessEngine/model_0.1')
 
     def evaluate(self, position):
-        position = position.reshape((-1, 12, 8, 8))
-        return self.model.predict(position)
+        pi, v = self.model.predict(position.reshape(-1, 12, 8, 8))
+        print(pi[0], v[0])
+        return pi[0]
 
 
 if __name__ == '__main__':

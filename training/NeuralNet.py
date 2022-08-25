@@ -18,7 +18,7 @@ class NeuralNet():
     See othello/NNet.py for an example implementation.
     """
 
-    def __init__(self, game):
+    def __init__(self):
         dropout = 0.3
         num_channels = 512
 
@@ -32,7 +32,7 @@ class NeuralNet():
         s_fc1 = tf.keras.layers.Dropout(dropout)(tf.keras.layers.Activation('relu')(tf.keras.layers.BatchNormalization(axis=1)(tf.keras.layers.Dense(1024, use_bias=False)(h_conv4_flat))))  # batch_size x 1024
         s_fc2 = tf.keras.layers.Dropout(dropout)(tf.keras.layers.Activation('relu')(tf.keras.layers.BatchNormalization(axis=1)(tf.keras.layers.Dense(512, use_bias=False)(s_fc1))))          # batch_size x 1024
         self.pi = tf.keras.layers.Dense(64*64, activation='softmax', name='pi')(s_fc2)   # batch_size x self.action_size
-        self.v = tf.keras.layers.Dense(1, activation='tanh', name='v')(s_fc2)                    # batch_size x 1
+        self.v = tf.keras.layers.Dense(1, activation='tanh', name='v')(s_fc2)            # batch_size x 1
 
         self.model = tf.keras.Model(inputs=input_layer, outputs=[self.pi, self.v])
         self.model.compile(loss=['categorical_crossentropy','mean_squared_error'], optimizer=tf.keras.optimizers.Adam())
