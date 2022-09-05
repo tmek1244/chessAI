@@ -31,7 +31,7 @@ class King(Piece):
         for position in [(cur_position.row + ver * i, cur_position.col + hor * i) for i in range(1, 8)]:
             if position[0] > 7 or position[0] < 0 or position[1] > 7 or position[1] < 0:
                 return None
-            if board[position]:
+            if board[position] and board[position] != self:
                 return None if board[position].color == self.color else (board[position], counter)
             counter += 1
         return None
@@ -116,7 +116,7 @@ class King(Piece):
     def get_all_moves(
         self, board: BoardField, whose_move: PieceColor|None = None) -> list[tuple[int, int]]:
         result = []
-        if whose_move and whose_move != self.color:
+        if whose_move is not None and whose_move != self.color:
             return []
 
         for i, j in [

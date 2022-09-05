@@ -29,7 +29,7 @@ class Knight(Piece):
     def get_all_moves(
         self, board: BoardField, whose_move: PieceColor|None = None) -> list[tuple[int, int]]:
         result = []
-        if whose_move and whose_move != self.color:
+        if whose_move is not None and whose_move != self.color:
             return []
 
         for i in [1, 2, -1, -2]:

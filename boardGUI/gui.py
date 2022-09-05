@@ -3,7 +3,7 @@ import logging
 import pygame
 
 # logging.getLogger().setLevel(logging.DEBUG)
-logging.basicConfig(level = logging.DEBUG)
+logging.basicConfig(level = logging.INFO)
 log = logging.getLogger(__name__)
 
 
@@ -78,7 +78,7 @@ class BoardGui:
                         # print(self.engine_board.next_move)
                         self.possible_moves = piece.get_all_moves(
                             self.engine_board.board, self.engine_board.next_move)
-                        log.info(f"Possible moves: {self.possible_moves}")
+                        log.debug(f"Possible moves: {self.possible_moves}")
             elif event.type == pygame.MOUSEBUTTONUP:
                 if self.piece_pressed:
                     pos = pygame.mouse.get_pos()

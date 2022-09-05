@@ -32,6 +32,12 @@ class Coords:
             self.row = int(key[1]) - 1
             self.col = mapping[key[0]]
     
+    def __str__(self) -> str:
+        return f"{chr(self.col + 97)}{self.row + 1}"
+
+    def __repr__(self):
+        return self.__str__()
+    
     def is_correct(self) -> bool:
         return 0 <= self.row < 8 and 0 <= self.col < 8
     
@@ -121,13 +127,16 @@ class BoardField:
                     return True
 
     def move(self, start: Coords, end: Coords, move_counter: int):
-        log.info(f"Moving from {start.row}:{start.col} to {end.row}:{end.col}")
+        log.info(f"Moving from {start} to {end}")
         piece = self.board[start.row][start.col]
         assert piece
         if enemy:=self.board[end.row][end.col]:
             self.pieces.remove(enemy)
             if self.under_check[piece.color] == enemy:
                 self.under_check[piece.color] = None
+        if self.under_check[piece.color]:
+            log.info("No longer under check")
+            self.under_check[piece.color] = None
         
         self.board[end.row][end.col] = piece
         self.board[start.row][start.col] = None
@@ -188,7 +197,7 @@ class Piece:
         self.when_moved: list[int] = []
 
     def __str__(self):
-        return f"{self.type}:{self.color} [{self.position}]"
+        return f"{self.type}:{self.color} at {self.position}"
 
     def __repr__(self):
         return self.__str__()
@@ -221,7 +230,6 @@ class Piece:
 
     def king_not_under_check(self, next_position: Coords, board: BoardField) -> bool:
         king = cast(Coords, board.kings[self.color].position)
-        
         if (enemy := board.under_check[self.color]):
             enemy = cast(Piece, enemy)
             if enemy.position.diagonal(king):
@@ -273,7 +281,7 @@ class Piece:
                         return (
                             piece.type not in [PieceType.QUEEN, PieceType.ROOK] 
                             or piece.color == self.color)
-        if self.position.same_col(king) and next_position.same_col(self.position) and not board.is_between(self.position, board.kings[self.color].position):
+        if self.position.same_col(king) and not next_position.same_col(self.position) and not board.is_between(self.position, board.kings[self.color].position):
             if self.position.row > king.row:
                 for i in range(self.position.row+1, 8):
                     if piece:=board[(i, self.position.col)]:

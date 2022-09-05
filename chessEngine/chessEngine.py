@@ -8,7 +8,7 @@ from chessEngine.pieces.pieces import create_piece
 from .AI import Bot
 
 log = logging.getLogger(__name__)
-logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.INFO)
 
 bot = Bot()
 
@@ -68,7 +68,9 @@ class Board:
             return 1
 
         can_move, info = piece.can_move(destination, self.board)
-        log.info(f"Returned info: {info}")
+        if info:
+            log.info(f"Returned info: {info}")
+
         if not can_move:
             return 1
 
@@ -124,7 +126,7 @@ class Board:
             from_square = idx//64
             to_square = idx%64
             if self.try_move(Coords((from_square//8, from_square%8)), Coords((to_square//8, to_square%8))) == 0:
-                print(f"Best move {from_square} -> {to_square}, after {i} tries")
+                print(f"Best move {from_square} -> {to_square}, after {i} tries. Confidence: {evalutaion[idx]}")
                 return self.make_move(Coords((from_square//8, from_square%8)), Coords((to_square//8, to_square%8)))
                     
         # best_move = ((None, None), 100)
