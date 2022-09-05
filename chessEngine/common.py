@@ -171,6 +171,8 @@ class BoardField:
                     piece_id = 5
                 result[color, piece_id, row, col] = 1
         return result
+    
+    # def get_castling_rights()
 
 
 class Piece:

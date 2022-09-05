@@ -10,6 +10,9 @@ from .AI import Bot
 log = logging.getLogger(__name__)
 logging.getLogger().setLevel(logging.DEBUG)
 
+bot = Bot()
+
+
 class Board:
     def __init__(self, empty=False):
         log.info("Creating board...")
@@ -17,7 +20,6 @@ class Board:
         self.history = []
         self.next_move = PieceColor.WHITE
         self.move_counter = 0
-        self.bot = Bot()
 
         if not empty:
             self.reset()
@@ -70,25 +72,13 @@ class Board:
         if not can_move:
             return 1
 
-        # board_copy = deepcopy(self.board)
-        # if info == 'short':
-        #     board_copy.move(start, destination, self.move_counter)
-        #     board_copy.move((row_start, 7), (row_start, 5), self.move_counter)
-        # elif info == "long":
-        #     board_copy.move(start, destination, self.move_counter)
-        #     board_copy.move((row_start, 0), (row_start, 3), self.move_counter)
-        # elif info == "en_passant":
-        #     board_copy.en_passant(start, destination, self.move_counter)
-        # else:
-        #     board_copy.move(start, destination, self.move_counter)
-        # if self._is_legal(board_copy):
         if info == 'short':
             self.board.move(start, destination, self.move_counter)
-            self.board.move((start.row, 7), (start.row, 5), self.move_counter)
+            self.board.move(Coords((start.row, 7)), Coords((start.row, 5)), self.move_counter)
         elif info == "long":
             self.board.move(start, destination, self.move_counter)
-            self.board.move((start.row, 0), (start.row, 3), self.move_counter)
-        elif info == "en_passant":
+            self.board.move(Coords((start.row, 0)), Coords((start.row, 3)), self.move_counter)
+        elif info == "en_passant":  
             self.board.en_passant(start, destination, self.move_counter)
         else:
             self.board.move(start, destination, self.move_counter)
@@ -102,7 +92,7 @@ class Board:
         self.move_counter += 1
     
         if self.next_move == PieceColor.BLACK:
-            self.bot_move()    
+            self.bot_move()
         
         return 0
     
@@ -129,14 +119,26 @@ class Board:
         return 0
 
     def bot_move(self):
-        evalutaion = self.bot.evaluate(self.board.to_array())
-        for i, idx in enumerate(np.argsort(evalutaion)):
+        evalutaion = bot.evaluate(self.board.to_array())
+        for i, idx in enumerate(np.argsort(evalutaion)[::-1]):
             from_square = idx//64
             to_square = idx%64
             if self.try_move(Coords((from_square//8, from_square%8)), Coords((to_square//8, to_square%8))) == 0:
                 print(f"Best move {from_square} -> {to_square}, after {i} tries")
                 return self.make_move(Coords((from_square//8, from_square%8)), Coords((to_square//8, to_square%8)))
                     
+        # best_move = ((None, None), 100)
+        # for piece in self.board.pieces:
+        #     for move in piece.get_all_moves(self.board, PieceColor.BLACK):
+        #         # COUNTER += 1
+        #         engine = deepcopy(self)
+        #         if engine.make_move(piece.position, move) == 0:
+        #             if (evalutaion:=bot.evaluate(engine.board.to_array())) < best_move[1]:
+        #                 best_move = ((piece.position, move), evalutaion)
+        #             print(f"move {piece.position} -> {move} with eval {evalutaion}")
+
+        # print(f"Best move {best_move[0][0]} -> {best_move[0][1]} with eval {best_move[1]}")
+        # self.make_move(*best_move[0])
 
     # def _is_legal(self, board: BoardField):
     #     for piece in board.pieces:
