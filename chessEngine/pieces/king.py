@@ -121,7 +121,8 @@ class King(Piece):
 
         for i, j in [
             (1, 0), (0, 1), (-1, 0), (0, -1),
-            (1, 1), (1, -1), (-1, 1), (-1, -1)
+            (1, 1), (1, -1), (-1, 1), (-1, -1),
+            (0, 2), (0, -2)
             ]:
             next_row, next_col = self.position.row + i, self.position.col + j
             if self.can_move(Coords((next_row, next_col)), board)[0]:
