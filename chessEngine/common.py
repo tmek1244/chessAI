@@ -1,6 +1,7 @@
 import logging
 from enum import Enum, IntEnum
 from typing import NewType, Optional, Union, cast
+import numpy as np
 
 log = logging.getLogger(__name__)
 
@@ -145,6 +146,31 @@ class BoardField:
         assert enemy_pawn
         self.pieces.remove(enemy_pawn)
         self.board[start.row][end.col] = None
+
+    def to_array(self) -> np.array:
+        result = np.zeros((2, 6, 8, 8))
+        for row in range(0, 8):
+            for col in range(0, 8):
+                piece = self.board[row][col]
+                if not piece:
+                    continue
+                
+                color = 1 if piece.color == PieceColor.BLACK else 0
+                piece_id = None
+                if piece.type == PieceType.KING:
+                    piece_id = 0
+                elif piece.type == PieceType.QUEEN:
+                    piece_id = 1
+                elif piece.type == PieceType.ROOK:
+                    piece_id = 2
+                elif piece.type == PieceType.BISHOP:
+                    piece_id = 3
+                elif piece.type == PieceType.KNIGHT:
+                    piece_id = 4
+                elif piece.type == PieceType.PAWN:
+                    piece_id = 5
+                result[color, piece_id, row, col] = 1
+        return result
 
 
 class Piece:
