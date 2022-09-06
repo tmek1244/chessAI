@@ -14,7 +14,7 @@ from ..common import Coords
 def create_piece(
         piece: common.PieceType,
         color: common.PieceColor,
-        position: str | tuple[int, int]) -> common.Piece:
+        position: Coords) -> common.Piece:
     return {
         common.PieceType.PAWN: Pawn,
         common.PieceType.KNIGHT: Knight,
@@ -22,4 +22,4 @@ def create_piece(
         common.PieceType.ROOK: Rook,
         common.PieceType.QUEEN: Queen,
         common.PieceType.KING: King
-    }[piece](color, Coords(position))
+    }[piece](color, position)

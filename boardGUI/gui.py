@@ -8,8 +8,10 @@ log = logging.getLogger(__name__)
 
 
 from chessEngine.chessEngine import Board
+from chessEngine.common import PieceType
 
 from .piece import PieceGUI
+
 
 SCREEN_WIDTH = 800
 SCREEN_HEIGHT = 800
@@ -85,7 +87,9 @@ class BoardGui:
                     col, row = pos[0]//(SCREEN_WIDTH//8), (7 - pos[1]//(SCREEN_HEIGHT//8))
 
                     log.debug(f"{col}, {row}")
-                    self.engine_board.make_move(self.piece_pressed.position, (row, col))
+                    if self.engine_board.make_move(self.piece_pressed.position, (row, col)) == 2: # promotion
+                        self.engine_board.make_move(self.piece_pressed.position, (row, col), PieceType.QUEEN)
+
                     # self.piece_pressed.x = col
                     # self.piece_pressed.y = row
                     self.piece_pressed = None

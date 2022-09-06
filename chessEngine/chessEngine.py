@@ -40,13 +40,13 @@ class Board:
             PieceType.ROOK,
         ]):
             self.board[0, i] = create_piece(
-                piece, PieceColor.WHITE, (0, i))
+                piece, PieceColor.WHITE, Coords((0, i)))
             self.board[1, i] = create_piece(
-                PieceType.PAWN, PieceColor.WHITE, (1, i))
+                PieceType.PAWN, PieceColor.WHITE, Coords((1, i)))
             self.board[6, i] = create_piece(
-                PieceType.PAWN, PieceColor.BLACK, (6, i))
+                PieceType.PAWN, PieceColor.BLACK, Coords((6, i)))
             self.board[7, i] = create_piece(
-                piece, PieceColor.BLACK, (7, i))
+                piece, PieceColor.BLACK, Coords((7, i)))
 
         self.history = []
 
@@ -82,6 +82,14 @@ class Board:
             self.board.move(Coords((start.row, 0)), Coords((start.row, 3)), self.move_counter)
         elif info == "en_passant":  
             self.board.en_passant(start, destination, self.move_counter)
+        elif info == "promote":
+            if next_piece is None:
+                return 2
+            if next_piece in [PieceType.KING, PieceType.PAWN]:
+                return 1
+            new_piece = create_piece(next_piece, self.next_move, destination)
+            self.board.promote(start, destination, new_piece)
+            
         else:
             self.board.move(start, destination, self.move_counter)
         # else:
@@ -93,8 +101,8 @@ class Board:
             )
         self.move_counter += 1
     
-        if self.next_move == PieceColor.BLACK:
-            self.bot_move()
+        # if self.next_move == PieceColor.BLACK:
+        #     self.bot_move()
         
         return 0
     

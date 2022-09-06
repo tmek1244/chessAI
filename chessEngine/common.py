@@ -146,8 +146,14 @@ class BoardField:
         if piece.enemy_king_under_check(self):
             self.under_check[(piece.color + 1)%2] = piece
 
-    def promote(self, position: Coords, new_piece: 'Piece'):
-        self.board[position.row][position.col] = new_piece
+    def promote(self, start: Coords, end: Coords, new_piece: 'Piece'):
+        self.pieces.remove(self.board[start.row][start.col])
+        self.board[start.row][start.col] = None
+        if self.board[end.row][end.col]:
+            self.pieces.remove(self.board[end.row][end.col])
+            self.board[end.row][end.col] = None
+        self.pieces.add(new_piece)
+        self.board[end.row][end.col] = new_piece
 
     def en_passant(self, start: Coords, end: Coords, move_counter: int):
         self.move(start, end, move_counter)
