@@ -1,4 +1,5 @@
 import logging
+from time import sleep
 
 import pygame
 
@@ -63,7 +64,8 @@ class BoardGui:
                 ))
         
         ev = pygame.event.get()
-
+        self.engine_board.bot_move()
+        # sleep(1)
         # proceed events
         for event in ev:
 

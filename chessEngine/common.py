@@ -77,7 +77,7 @@ class BoardField:
         self.pieces: set['Piece'] = set()
         self.move_counter = 0
         self.kings: list[Optional('Piece')] = [None, None]
-        self.under_check: list[Optional('Piece')] = [None, None]
+        self.under_check: tuple[list['Piece']] = ([], [])
 
     def __getitem__(self, item: Coords | tuple[int, int] | str) -> Optional['Piece']:        
         if not isinstance(item, Coords):
@@ -132,11 +132,9 @@ class BoardField:
         assert piece
         if enemy:=self.board[end.row][end.col]:
             self.pieces.remove(enemy)
-            if self.under_check[piece.color] == enemy:
-                self.under_check[piece.color] = None
         if self.under_check[piece.color]:
             log.info("No longer under check")
-            self.under_check[piece.color] = None
+            self.under_check[piece.color] = []
         
         self.board[end.row][end.col] = piece
         self.board[start.row][start.col] = None
@@ -145,6 +143,9 @@ class BoardField:
         self.move_counter = move_counter #TODO
         if piece.enemy_king_under_check(self):
             self.under_check[(piece.color + 1)%2] = piece
+        # elif self.kings[(piece.color + 1)%2].under_check(self):
+        # TODO what if there are two piceses attacking king
+        # TODO discover attack
 
     def promote(self, start: Coords, end: Coords, new_piece: 'Piece'):
         self.pieces.remove(self.board[start.row][start.col])

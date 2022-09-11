@@ -129,13 +129,13 @@ class Board:
         return 0
 
     def bot_move(self):
-        evalutaion = bot.evaluate(self.board.to_array())
+        evalutaion = bot.evaluate(self.board.to_array(), self.next_move)
         for i, idx in enumerate(np.argsort(evalutaion)[::-1]):
             from_square = idx//64
             to_square = idx%64
             if self.try_move(Coords((from_square//8, from_square%8)), Coords((to_square//8, to_square%8))) == 0:
                 print(f"Best move {from_square} -> {to_square}, after {i} tries. Confidence: {evalutaion[idx]}")
-                return self.make_move(Coords((from_square//8, from_square%8)), Coords((to_square//8, to_square%8)))
+                return self.make_move(Coords((from_square//8, from_square%8)), Coords((to_square//8, to_square%8)), PieceType.QUEEN)
                     
         # best_move = ((None, None), 100)
         # for piece in self.board.pieces:
