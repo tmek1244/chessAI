@@ -101,8 +101,8 @@ class Board:
             )
         self.move_counter += 1
     
-        # if self.next_move == PieceColor.BLACK:
-        #     self.bot_move()
+        if self.next_move == PieceColor.BLACK:
+            self.bot_move()
         
         return 0
     

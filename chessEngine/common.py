@@ -134,7 +134,7 @@ class BoardField:
             self.pieces.remove(enemy)
         if self.under_check[piece.color]:
             log.info("No longer under check")
-            self.under_check[piece.color] = []
+            self.under_check[piece.color].clear()
         
         self.board[end.row][end.col] = piece
         self.board[start.row][start.col] = None
@@ -142,7 +142,7 @@ class BoardField:
         piece.when_moved.append(move_counter)
         self.move_counter = move_counter #TODO
         if piece.enemy_king_under_check(self):
-            self.under_check[(piece.color + 1)%2] = piece
+            self.under_check[(piece.color + 1)%2].append(piece)
         # elif self.kings[(piece.color + 1)%2].under_check(self):
         # TODO what if there are two piceses attacking king
         # TODO discover attack
@@ -237,7 +237,8 @@ class Piece:
 
     def king_not_under_check(self, next_position: Coords, board: BoardField) -> bool:
         king = cast(Coords, board.kings[self.color].position)
-        if (enemy := board.under_check[self.color]):
+        for enemy in board.under_check[self.color]:
+        # if (enemy := board.under_check[self.color]):
             enemy = cast(Piece, enemy)
             if enemy.position.diagonal(king):
                 if next_position.diagonal(king):
